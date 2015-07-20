@@ -1,8 +1,8 @@
 # PoolBiasEstimators
 With Pool bias in Information Retrieval (IR) is meant the bias of a test collection against new systems that appears as side-effect of the use of the pooling technique.
 In this repository we find the implementation of the pool bias estimators analyzed by Lipani et al. [1]. 
-The developed estimators are: the true estimator (TrueEstimator or TE), the estimator based on the pool (PoolEstimator or PE), the estimator based on runs developed by Webber and Park [2] (WebberOnRunsEstimator or WORE), and the estimator 
-developed by Lipani et al. [1] (LipaniEstimator or LE).
+The developed estimators are: the true estimator (TrueEstimator or TE), the estimator based on the pool (PoolEstimator or PE), the estimator based on runs developed by Webber and Park (WebberOnRunsEstimator or WORE) [2], and the estimator 
+developed by Lipani et al. (LipaniEstimator or LE) [1].
 The TrueEstimator computes, when possible, the score of the selected run when pooled, useful to compare the true score with the estimated ones; the PoolEstimator computes the score of a run as it was not present during the construction of the pool, useful to measure the bias of the test collection and as baseline when comparing the performance of the other estimators. The details about the other estimators can be found in the respective referenced papers.
 
 The application has two use cases, **analysis** of the test collection and run bias **correction**.
