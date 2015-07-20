@@ -1,16 +1,16 @@
 # PoolBiasEstimators
 With Pool bias in Information Retrieval (IR) is meant the bias of a test collection against new systems that appears as side-effect of the use of the pooling technique.
-In this repository we find the implementation of the pool bias estimators analysed by Lipani et al. [1]. 
+In this repository we find the implementation of the pool bias estimators analyzed by Lipani et al. [1]. 
 The developed estimators are: the true estimator (TrueEstimator or TE), the estimator based on the pool (PoolEstimator or PE), the estimator based on runs developed by Webber and Park [2] (WebberOnRunsEstimator or WORE), and the estimator 
 developed by Lipani et al. [1] (LipaniEstimator or LE).
-The TrueEstimator computes, when possible, the score of the selected run when pooled, useful to compare the true score with the estimated ones; the PoolEstimator computes the score of a run as it was not present during the constraction of the pool, usefull to measure the bias of the test collection and as baseline when comparing the performance of the other estimators. The details about the other estimators can be found in the rispective referenced papers.
+The TrueEstimator computes, when possible, the score of the selected run when pooled, useful to compare the true score with the estimated ones; the PoolEstimator computes the score of a run as it was not present during the construction of the pool, useful to measure the bias of the test collection and as baseline when comparing the performance of the other estimators. The details about the other estimators can be found in the respective referenced papers.
 
 The application has two use cases, **analysis** of the test collection and run bias **correction**.
-In both cases it is required to provide a) the relevance assessments and b) the set of runs pooled to produce the relevance assessments. All the input files have to fulfil the standard TREC format with exception of the optional *run description file* and *pvalues files* that have their own format (below the details).
+In both cases it is required to provide a) the relevance assessments and b) the set of runs pooled to produce the relevance assessments. All the input files have to fulfill the standard TREC format with exception of the optional *run description file* and *pvalues files* that have their own format (below the details).
 
-The available IR measures are: P@10, P@15, P@20, P@30 and P@100. All the IR measures are *trec_eval* consistent, which means that the following two behaviours are preserved: 1) the order of the documents in a run file is based on their scores and in case of tie, in their document ids in descending order; 2) the document scores are handled in float.
+The available IR measures are: P@10, P@15, P@20, P@30 and P@100. All the IR measures are *trec_eval* consistent, which means that the following two behaviors are preserved: 1) the order of the documents in a run file is based on their scores and in case of tie, in their document ids in descending order; 2) the document scores are handled in float.
 
-To compare the performances of the varius methods the following measures of error and rank correlation are used: 
+To compare the performances of the various methods the following measures of error and rank correlation are used: 
 Mean Absolute Error (MAE), System Rank Error (SRE), System Rank Error with Statistical Significance (SRE*) and 
 Kendall's Tau coefficient B (TauB).
 
@@ -121,7 +121,7 @@ Only 75% Top Best Runs: 13
 ```
 
 ## Correction of a Run
-The second use case, the *correction* of a run, computes given a run its estimated score. Here we can distinguish two output that depend wheater the provided run is part or is not part of the pool. When it is part of the pool also the TE is output, instead when it is not, the TE's score assumes the value of NaN. 
+The second use case, the *correction* of a run, computes given a run its estimated score. Here we can distinguish two output that depend whether the provided run is part or is not part of the pool. When it is part of the pool also the TE is output, instead when it is not, the TE's score assumes the value of NaN. 
 
 Following an example:
 ```sh
@@ -172,9 +172,9 @@ Lipani      	ASUDIV         	0.4740
 ## Arguments of the Application
 ### Leave One Run/Organization Out approach (-s or -o with -d <value>), Available Only in *Analysis* Mode
 The pooling technique is mostly used during evaluation campaigns. In a evaluation campaign many challenges take place with a 
-number of organization partecipating at them, and each organization in each challenge is allowed to submit more then one run. Sometimes the runs submitted by the same organization are generated using the same system with just some difference in the tuning of its parameters. This behaviour has the effect to produce slightly similar runs that would contribute to the pool with a similar set of documents to be judged. To avoid this effect that would minimize the measure of the pool bias, and to make a more realistic analysis of it, we implemented the possibility to switch approach from the default one leave-one-run-out to leave-one-organization-out approach, in which all the runs submitted by the organization of the selected run are unpooled.
+number of organization participating at them, and each organization in each challenge is allowed to submit more then one run. Sometimes the runs submitted by the same organization are generated using the same system with just some difference in the tuning of its parameters. This behavior has the effect to produce slightly similar runs that would contribute to the pool with a similar set of documents to be judged. To avoid this effect that would minimize the measure of the pool bias, and to make a more realistic analysis of it, we implemented the possibility to switch approach from the default one leave-one-run-out to leave-one-organization-out approach, in which all the runs submitted by the organization of the selected run are unpooled.
 
-The leave-one-organization-out approach requires additional information that needs to be provided through an xml description file like in the following example, in which it is specified to which organization every run belongs.
+The leave-one-organization-out approach requires additional information that needs to be provided through an XML description file like in the following example, in which it is specified to which organization every run belongs.
 
 ```xml
 <set>
@@ -189,15 +189,15 @@ The leave-one-organization-out approach requires additional information that nee
 </set>
 ```
 ### Print Runs Scores Report, Pool Bias Report or both (-r or -b [with -p], default)
-The application can output the *runs scores report* or the *pool bias report* or by deafault both.
+The application can output the *runs scores report* or the *pool bias report* or by default both.
 The runs scores report prints the score of each run for each estimator; the pool bias report prints the values obtained using the measure of error and correlation for each estimators with respect to the TrueEstimator.
 
 ### All Pooled Runs or Only Top Best 75% of Pooled Runs (default or -t)
 Due to the prototypical nature of IR challenges sometimes organization submit runs with modest performance.
-To avoid their effect, as it has been done in the literature, it is possible to remove the bottom 25% of runs poorly scoring from the set of analysed runs.
+To avoid their effect, as it has been done in the literature, it is possible to remove the bottom 25% of runs poorly scoring from the set of analyzed runs.
 
 ### Provide pValues (-p /path/to/the/folder)
-The pValues files are used by the mesures of errors and correlation marked by a star. For each IR measure is required a separated file that has the following name pattern: "pValues.[Metric].csv". All the values greater then 
+The pValues files are used by the measures of errors and correlation marked by a star. For each IR measure is required a separated file that has the following name pattern: "pValues.[Metric].csv". All the values greater then 
 0.05 are considered non statistically significance. The format of the files is a list of coma separated values (CSV) as shown in the following example:
 ```csv
 input.ARCJ5,input.ARCJ0,0.58162
