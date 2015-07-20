@@ -1,0 +1,154 @@
+<set>
+    <runs>
+        <tag>Brkly3</tag>
+        <organization>University of California at Berkeley</organization>
+    </runs>
+    <runs>
+        <tag>CLARTA</tag>
+        <organization>CLARIT Corporation</organization>
+    </runs>
+    <runs>
+        <tag>CLARTM</tag>
+        <organization>CLARIT Corporation</organization>
+    </runs>
+    <runs>
+        <tag>CnQst1</tag>
+        <organization>Conquest, Inc.</organization>
+    </runs>
+    <runs>
+        <tag>CnQst2</tag>
+        <organization>Conquest, Inc.</organization>
+    </runs>
+    <runs>
+        <tag>HNCad1</tag>
+        <organization>HNC Inc.</organization>
+    </runs>
+    <runs>
+        <tag>HNCad2</tag>
+        <organization>HNC Inc.</organization>
+    </runs>
+    <runs>
+        <tag>INQ001</tag>
+        <organization>University of Massachusetts at Amherst</organization>
+    </runs>
+    <runs>
+        <tag>INQ002</tag>
+        <organization>University of Massachusetts at Amherst</organization>
+    </runs>
+    <runs>
+        <tag>TMC8</tag>
+        <organization>Thinking Machines Corporation</organization>
+    </runs>
+    <runs>
+        <tag>TMC9</tag>
+        <organization>Thinking Machines Corporation</organization>
+    </runs>
+    <runs>
+        <tag>TOPIC2</tag>
+        <organization>Verity Corp.</organization>
+    </runs>
+    <runs>
+        <tag>UREKA2</tag>
+        <organization>Mead Data Central, Inc.</organization>
+    </runs>
+    <runs>
+        <tag>UREKA3</tag>
+        <organization>Mead Data Central, Inc.</organization>
+    </runs>
+    <runs>
+        <tag>VTcms2</tag>
+        <organization>VPI&amp;SU (Virginia Tech)</organization>
+    </runs>
+    <runs>
+        <tag>citri1</tag>
+        <organization>CITRI, Australia</organization>
+    </runs>
+    <runs>
+        <tag>citri2</tag>
+        <organization>CITRI, Australia</organization>
+    </runs>
+    <runs>
+        <tag>cityau</tag>
+        <organization>City University, London</organization>
+    </runs>
+    <runs>
+        <tag>citymf</tag>
+        <organization>City University, London</organization>
+    </runs>
+    <runs>
+        <tag>crnlL2</tag>
+        <organization>Cornell University</organization>
+    </runs>
+    <runs>
+        <tag>crnlV2</tag>
+        <organization>Cornell University</organization>
+    </runs>
+    <runs>
+        <tag>dortL2</tag>
+        <organization>University of Dortmund, Germany</organization>
+    </runs>
+    <runs>
+        <tag>dortQ2</tag>
+        <organization>University of Dortmund, Germany</organization>
+    </runs>
+    <runs>
+        <tag>erima1</tag>
+        <organization>Environment Research Institute of Michigan</organization>
+    </runs>
+    <runs>
+        <tag>erima2</tag>
+        <organization>Environment Research Institute of Michigan</organization>
+    </runs>
+    <runs>
+        <tag>gecrd2</tag>
+        <organization>GE Research and Development Center</organization>
+    </runs>
+    <runs>
+        <tag>lsia1</tag>
+        <organization>Bellcore</organization>
+    </runs>
+    <runs>
+        <tag>lsiasm</tag>
+        <organization>Bellcore</organization>
+    </runs>
+    <runs>
+        <tag>pircs3</tag>
+        <organization>Queens College, CUNY</organization>
+    </runs>
+    <runs>
+        <tag>pircs4</tag>
+        <organization>Queens College, CUNY</organization>
+    </runs>
+    <runs>
+        <tag>prc1</tag>
+        <organization>PRC, Inc.</organization>
+    </runs>
+    <runs>
+        <tag>prc2</tag>
+        <organization>PRC, Inc.</organization>
+    </runs>
+    <runs>
+        <tag>rutcomb1</tag>
+        <organization>Rutgers University</organization>
+    </runs>
+    <runs>
+        <tag>rutfmed</tag>
+        <organization>Rutgers University</organization>
+    </runs>
+    <runs>
+        <tag>schau1</tag>
+        <organization>Swiss Federal Institute of Technology (ETH)</organization>
+    </runs>
+    <runs>
+        <tag>siems2</tag>
+        <organization>Siemens Corporate Research, Inc.</organization>
+    </runs>
+    <runs>
+        <tag>siems3</tag>
+        <organization>Siemens Corporate Research, Inc.</organization>
+    </runs>
+    <runs>
+        <tag>uicah</tag>
+        <organization>University of Illinois at Chicago</organization>
+    </runs>
+</set>

@@ -1,0 +1,1655 @@
+     Overview of the Second Text REtrieval Conference (TREC-2)
+                                Donna Harman
+
+                     National Institute of Standards and Technology
+                             Gaithersburg, MD. 20899
+
+1. Introduction
+InNovember of 1992 the first Text REtrieval Conference
+~EC-1) was held at NIST [Harman 1993]. The confer-
+ence, co-sponsored by ARPA and NIST, brought together
+information retrieval researchers to discuss their system
+results on a new large test collection (the TIPSTER col-
+lection). This was the first time that such groups had ever
+compared results on the same data using the same evalua-
+tion methods and represented a breakthrough in cross-
+system evaluation in information retrieval. It was also the
+first time that most of these groups had used such a large
+test collection and therefore required a major effort by all
+groups to scale up their retrieval techniques.
+The overall goal of the TREC initiative is to encourage re-
+search in information retrieval using large-scale test col-
+lections. It is hoped that by providing a very large test
+collection, and encouraging interaction with other groups
+in a friendly evaluation forum, new momentum in infor-
+mation retrieval will be generated. Because of the NIST
+involvement, groups with commercial retrieval products
+have participated in TREC, leaning to increased techno-
+logical transfer between the research labs and the com-
+mercial products. TREC has also provided a state-of-the-
+art showcase of retrieval methods for ARPA clients.
+Whereas the TREC-1 conference demonstrated a wide
+range of different approaches to the retrieval of text from
+large document collections, the results should be viewed
+as very preliminary. Not only were the deadlines for re-
+sults very tight, but the huge increase in the size of the
+document collection required significant system rebuild-
+ing by most groups. Much of this work was a system en-
+gineering task: finding reasonable data structures to use,
+getting indexing routines to be efficient enough to index
+all the data, finding enough storage to handle the large in-
+verted files and other structures, etc. Still, the results
+showed that the systems did the task well, and that auto-
+matic construction of queries from the topics did as well
+as, or better than, manual construction of queries.
+The second TREC conference ~EC-2) occurred in Au-
+gust of 1993, less than 10 months after the first confer-
+ence. In addition to 22 of the TREC-l groups, nine new
+
+                                       1
+
+groups took part. bringing the total number of participat-
+ing groups to 31. Many of the original TREC-1 groups
+were able to "complete" their system rebuilding and tun-
+ing, and in general the TREC-2 results show significant
+improvements over the TREC-l results.
+This paper provides an overview of the TREC-2 conf&-
+ence, including a review of the TREC task, a brief de-
+scription of the test collection being used, and an
+overview of the results. The papers from the individual
+groups should be referred to for more details on specific
+system approaches.
+
+2. The TREC Task
+2.1 Int~duction
+TREC is designed to encourage research in information
+retrieval using large data collections. Two types of re-
+trieval are being examined -- retrieval using an "adhoc"
+query such as a researcher might use in a library environ-
+ment, and retrieval using a "routing" query such as a pro-
+file to filter some inconling document stream. The TREC
+task is not tied to any given application, and is not primar-
+ily concerned with interfaces or optimmed response time
+for searching. However it is helpfiil to have some poten-
+tial user in mind when designing or testing a retrieval sys-
+tem. `The model for a user m TREC is a dedicated
+searcher, not a novice searcher, and the model for the ap-
+plication is one needing monitoring of data streams for in-
+formation on specific topics (routing), and the ability to
+do adlioc searches on archived data for new topics. It
+should be assumed that the users need the ability to do
+both high precision and high recall searches, and are will-
+ing to look at many documents and repeatedly modify
+queries in order to get high recall. Obviously they would
+like a system that makes this as easy as possible, but this
+ease should be reflected in TREC as added intelligence in
+the system rather than as special interfaces.
+Since TREC has been designed to evaluate system perfor-
+mance both in a routing (filtering or profiling) mode, and
+in an atihoc mode, both functions need to be tested.
+
+  Training
+
+   Topics
+
+L~mi1OO)\
+
+mTest
+   Topics
+
+
+LrFj;50)
+
+There were guidelines for constructing and manipulating
+the system data structures. These structures were defined
+to consist of the original documents, any new structures
+built automatically from the documents (such as inverted
+files, thesauri, conceptual networks, etc.), and any new
+structures built manually frorn the documents (such as
+thesauri, synonym lists, knowledge bases, rules, ~tc.).
+The following guidelines were developed for the TREC
+task.
+
+        Qi          Q2
+
+
+    [11~Th1ning~Th~est
+                         Documents
+           and 2)         (Disk 3)
+
+
+           Figure 1. The II~EC Task.
+
+The test design was based on traditional information
+retrieval models, and evaluation used traditional recall and
+precision measures. The above diagram of the test design
+shows the various components of IREC (fig. 1).
+This diagram reflects the four data sets (2 sets of topics
+and 2 sets of documents) that were provided to partici-
+pants. These data sets (along with a set of sample rele-
+vance judgrnents for the 100 training topics) were used to
+construct three sets of queries. Qi is the set of queries
+(probably multiple sets) created to help in adjusting a sys-
+tem to this task, to create better weighting algorithms, and
+in general to train the system for testing. The results of
+this research were used to create Q2, the routing queries
+to be used against the test documents. Q3 is the set of
+queries created from the test topics as adhoc queries for
+searching against the training documents. The results
+from searches using Q2 and Q3 were the official test
+results sent to NIST.
+
+
+2.1 Specific Task Guidelines
+Because the ThEC participants used a wide variety of
+indexin~~owledge base building techniques, and a wide
+variety of approaches to generate search queries, it was
+important to establish clear guidelines for the evaluation
+task. The guidelines deal with the methods of index-
+mg/knowledge base construction, and with the methods of
+generating the queries from the supplied topics. In gen-
+eral, they were constructed to reflect an actual operational
+environment, and to allow as fair as possible a separation
+among the diverse query construction approaches.
+
+
+                                      2
+
+  1. System data structures should be built using the
+     initial training set (documents from disks 1 and 2,
+     training topics 1-100, and the relevance judg-
+     ments). They may be modified based on the test
+     documents from disk 3, but not based on the test
+     topics.
+  2. There are parts of the test collection, such as the
+     Wall Street Journal and the Ziff material, that con-
+     tain manually assigned controlled or uncontrolled
+     index terms. These fields are delimited by SGML
+     tags, as specified in the documentation files
+     included with the data. Since the primary focus is
+     on retrieval and routing of naturally occurring text,
+     these manually indexed terms should not be used.
+  3. Special care should be used in handiing the rout-
+     ing task. `[`a true routing situation, a single docu-
+     ment would be indexed and compared against the
+     routing topics. Since the test documents are gen-
+     erally indexed as a complete set, routing should be
+     simulated by not using any information based on
+     the full set of test documents (such as weighting
+     based on the test collection, total frequency based
+     on the test collection, etc.) in the searching. It is
+     permissible to use training-set collection informa-
+     tion however.
+Additionally there were guidelines for constructing the
+queries from the provided topics. These guidelines were
+considered of great importance for fair system compari-
+son and were therefore carefully constructed. Three
+generic categories were defined, based on the amount and
+kind of manual intervention used.
+  1. AUTOMATIC (completely automatic iuitial query
+     construction)
+
+     adhoc queries -- The system will automatically
+     extract information from the topic to construct the
+     query. The query will then be submitted to the sys-
+     tem (with no manual modifications) and the results
+     from the system will be the results submitted to
+     NIST. There should be no manual intervention
+     that would affect the results.
+
+     routing queries -- The queries should be
+
+   constructed automatically using the training top-
+   ics, the training relevance judgments and the train-
+   ing documents. The queries should then be sub-
+   mitted to NIST before the test documents are
+   released and should not be modified after that
+   point. The unmodified queries should be run
+   against the test documents and the results submit-
+   ted to NIST.
+2. MANUAL (manual initial query construction)
+
+   adhoc queries -- The query is constructed in some
+   manner from the topic, either manually or using
+   machine assistance. Once the query has been con-
+   structed, it will be submitted to the system (with
+   no manual intervention), and the results from the
+   system will be the results submitted to NIST.
+   There should be no manual intervention after ini-
+   tial query construction that would affect the
+   results. (Manual intervention is covered by the cat-
+   egory labelled FEEDBACK.)
+
+   routing queries -- The queries should be con-
+   structed in the same manner as the adhoc queries
+   for MANUAL, but using the training topics, rele-
+   vance judgments, and training documents. They
+   should then be submitted to NIST before the test
+   documents are released and should not be modi-
+   fled after that point. The unmodified queries
+   should be run against the test documents and the
+   results submitted to NIST.
+3. FEEDBACK (automatic or manual query con-
+   struction with feedback)
+
+   atihoc queries -- The initial query can be con-
+   structed using either AUTOMATIC or MAAUAL
+   methods. The query is submitted to the system,
+   and a subset of the retrieved documents is used for
+   manual feedback, i.e., a human maltes judgments
+   about the relevance of the documents in this sub-
+   set. These judgments may be communicated to
+   the system, which may automatically modify the
+   query, or the human may snnply choose to modify
+   the query himself. At some point, feedback
+   should end, and the query should be accepted as
+   final. Systems that submit runs using this method
+   must submit several different sets of results to
+   allow tracking of the time/cost benefit of doing
+   relevance feedback.
+
+22 The Participants
+There were 31 participating systems in ThEC-2, using a
+wide range of retrieval techniques. The participants were
+able to choose from three levels of participation: Cate-
+gory A, full participation, Category B, full participation
+using a reduced dataset (1/4 of the full document set), and
+Category C for evaluation only (to allow commercial sys-
+tems to protect proprietary algoritiuns). The program
+committee selected only 20 category A and B groups to
+present talks because of limited conference time, and
+requested that the rest of the groups present posters. All
+groups were asked to submit papers for the proceedings.
+Each group was provided the data and asked to turn in
+either one or two sets of results for each topic. When two
+sets of results were sent, they could be made using differ-
+ent methods of creating queries (AUTOMATIC, MAN-
+UAL, or FEIIIDBACK), or by using different parameter
+settings for one query creation method. Groups could
+choose to do the routing task, the atihoc task, or both, and
+were requested to submit the top 1000 documents
+retrieved for each topic for evaluation.
+
+3. The Test Collection
+
+3.1 Introduction
+The creation of the test collection (called the `IIPSThR
+collection) was critical to the success of ThEC. Like
+most traditional retrieval collections, there are three dis-
+tinct parts to this collection -- the documents, the queries
+or topics, and the relevance judgments or "right answers."
+These test collection components are discussed briefly in
+the rest of this section. For a more complete description
+of the collection, see [Hannan 1994].
+
+3,2 The Documents
+The documents needed to mirror the different tyi~ of
+documents used in the theoretical TREC application.
+Specifically they had to have a varied length, a varied
+writing style, a varied level of editing and a varied vocab-
+ulary. As a final requirement, the documents had to cover
+different timeframes to show the effects of document date
+on the routing task.
+The documents were distributed as CD-ROMs with about
+1 gigabyte of data each, compressed to fit. The following
+shows the actual contents of each disk.
+
+Disk 1
+
+routing queries -- FEEDBACK cannot be used for
+routing queries as routing systems have not sup-
+ported feedback.
+
+
+                               3
+
+ WSJ -- Wall Street Journal (1987, 1988, 1989)
+* --- AP Newswire (1989)
+
+   * ZIFF-- Articles from Computer Select disks (Ziff-
+    Davis Publishing)
+   * FR -- Federal Register (1989)
+   * DOE -- Short abstracts from DOE publications
+
+Disk2
+   * WSJ --Wall Street Journal (1990, 1991, 1992)
+   * --- AP Newswire (1988)
+   * ---- Articles from Computer Select disks (Ziff-
+    Davis Publishing)
+   * --- Federal Register (1988)
+
+Disk3
+   * ----- San Jose Mercury News (1991)
+   * AP--APNewswire(1990)
+   * ---- Articles from Computer Select disks (Ziff-
+    Davis Publishing)
+    PAT--U.S.Patents(1993)
+The documents are uniformly formatted into an SGML-
+like structure, as can be seen in the following example.
+
+ <DOC>
+ <DOCNO> W5J880406-0090 <IDOCNO>
+ <HL> AT&T Unveils Services to Upgrade Phone Net-
+ works Under Global Plan </HL>
+ ~UTHOR> Janet Guyon (WSJ Stafi) <IAUTHOR>
+ <DATELINE> NEW YORK <IDATELINE>
+ <TEXT>
+   American Telephone & Telegraph Co. introduced the
+ first of a new generation of phone services with broad
+ implications for computer and communications equip-
+ ment markets.
+   AT&T said it is the first national long-distance car-
+ rier to announce prices for specific services under a
+ world-wide standardization plan to upgrade phone net-
+ works. By announcing commercial services under the
+ plan, which the industry calls the Integrated Services
+ Digital Network, AT&T will influence evolving commu-
+ nications standards to its advantage, consultants said,
+ just as International Business Machines Corp. has cre-
+ ated de facto computer standards favoring its products.
+
+from the Initial data appear, but these vary widely across
+the different sources. The documents have differing
+amounts of errors, which were not checked or corrected.
+Not only would this have been an impossible task, but the
+errors in the data provide a better simulation of the ThEC
+task. Errors in missing document separators or bad docu-
+ment numbers were screened out, although a few were
+missed and later reported as errors.
+Table 1 shows some basic document collection statistics.
+Note that although the collection sizes are roughly equlv-
+alent in megabytes, there is a range of document lengths
+from very short documents ~OE) to very long (FR).
+Also the range of document lengths within a collection
+varies. For example, the documents from AP are similar
+in length (the median and the average length are very
+close), but the WSJ and ZIFF documents have a wider
+range of lengths. The documents from the Federal Regis-
+ter (FR) have a very wide range of lengths.
+
+3.3 The Topics
+In designing the ThEC task, there was a conscious deci-
+sion made to provide "user need" statements rather than
+more traditional queries. Two major issues were involved
+in this decision. First there was a desire to allow a wide
+range of query construction methods by keeping the topic
+(the need statement) distinct from the query (the actual
+text submitted to the system). The second issue was the
+ability to increase the amount of information avallable
+about each topic, in particular to include with each topic a
+clear statement of what criteria make a document relevant.
+The topics were designed to mimic a real user's need, and
+were written by people who are actual users of a retrieval
+system. Although the subject domain of the topics was
+diverse, some consideration was given to the documents
+to be searched. The topics were constructed by doing trial
+retrievals against a sample of the document set, and then
+those topics that had roughly 25 to 100 hits in that sample
+were used. This created a range of broader and narrower
+topics.
+The following is one of the topics used in ThEC.
+
+ <top>
+ <head> Tipster Topic Description
+ <num> Number: 066
+ <dom> Domain: Science and Technology
+ <title> Topic: Natural Language Processing
+
+                                             <desc> Description:
+ <ITEXT>                                     Document will identijy a type of natural language pro-
+ <IDOC>                                      cessing technology which is being developed or mar-
+                                             keted in the U.S.
+All documents have beginning and end markers, and a
+unique DOCNO id field. Additionally other fields taken
+
+                                        4
+
+                            Table 1. Document Statistics
+
+
+        (disk3)           90,257      78,325 161,021        6,711
+     Median number of
+     terms per record
+        (diski)            182         353     181          313        82
+        (disk2)            218         346     167          315
+        (disk3)            279         358     119          2896
+     Average number of
+     terms per record
+        (diskl)            329         375     412          1017       89
+        (disk2)            377         370     394          1073
+        (disk3)            337         379     263          3543
+
+  <smry> Summary:
+  Document will identi~ a type of natural language pro-
+  cessing technology which is being developed or mar-
+  keted in the U.S.
+
+  <narr> Narrative:
+  A relevant document will identify a company or institu-
+  tion developing or marketing a natural language pro-
+  cessing technology, identify the technology, and identify
+  one or more features of the company'S product.
+
+  <con> Concept(s):
+  1. natural language processing
+  2. translation, language, dictionary, font
+  3. software applications
+
+  <fac> Factor(s):
+  <nat> Nationality: U.S.
+  <Ifac>
+  <def> Definition(s):
+  <Itop>
+Each topic is formatted in die same standard method to
+allow easier automatic construction of queries. Besides a
+beginning and an end marker, each topic has a number, a
+short title, a one-sentence description, and a summary
+sentence or two that can be used as a surrogate for the full
+topic (often very similar to the one-sentence description).
+There is a narrative section which is aimed at providing a
+complete description of document relevance for the
+
+                                        5
+
+assessors. Each topic also has a concepts section with a
+list of assorted concepts related to the topic. This section
+is designed to provide a mini-knowledge base about a
+topic such as a real searcher might possess. Additionally
+each topic can have a definitions section andlor a factors
+section. The definition section has one or two of the defi-
+nitions critical to a human understanding of the topic.
+The factors section is included to allow easier automatic
+query building by listing specific items from the narrative
+that constrain the documents that are relevant. Two par-
+ticular factors were used in the ThEC-2 topics: a time
+factor (current, before a given date, etc.) and a nationality
+factor (either jiwolving only certain countries or excluding
+certain countries).
+While the ThEC topics did not present a problem in scal-
+ing, the challenge of either automatically constructing a
+query, or manually constructing a query with little fore-
+knowledge of its searching capability, was a major chal-
+lenge for ThEC participants. In addition to filtering the
+relatively large amount of information provided in the
+topics into queries, the sometimes narrow definition of
+relevance as stated in the narrative was ditficult for most
+systems to handie.
+
+3A The Relevance Judgments
+The relevance judgments are of critical importance to a
+test collection. For each topic it is necessary to compile a
+list of relevant documents; hopefully as comprehensive a
+list as possible. For the TREC task, three possible
+
+methods for finding the relevant documents could have
+been used. `lithe first method, flill relevance judgments
+could have been made on over one million documents, for
+each topic, resulting in over 100 million judgments. This
+was cle&ly impossible. As a second approach, a random
+sample of the documents could have been taken, with rel-
+evance judgments done on that sample only. The problem
+with this approach is that a random sample that is large
+enough to find on the order of 200 relevant documents per
+topic is a very large random sample, and is likely to result
+in insulficient relevance judgments. The third method, the
+one used in ~ was to make relevance judgments on
+the sample of documents selected by the various partici-
+pating systems. This method is known as the pooling
+method, and has been used successfully in creating other
+collections [Sparck Jones & van Rijsbergen 1975]. The
+sample was constructed by taI~g the top 100 documents
+retrieved by each system for a given topic and merging
+them into a pool for relevance assessment. This is a valid
+sampling method since all the systems used ranked
+retrieval methods, with those documents most likely to be
+relevant returned first.
+Pooling proved to be an effective method. There was lit-
+tle overlap among the 31 systems in their retrieved docu-
+ments, although cousiderably more overlap than in
+ThEC-1.
+
+          Table 2. Overlap of Submitted Results
+
+                   TREC-2        ThEC-1
+                 Max  Actual  Max   Actual
+Unique
+Documents
+PerTopic         4000 1106.0  3300  1278.86
+(Adhoc, 40 runs
+23 groups)       _____ ______     _______
+Unique
+Documents
+PerTopic         4000 1465.6  2200  1066.86
+~outing, 40 runs
+24 groups)       ____________ _____ _______
+
+Table 2 shows the overlap statistics. The first overlap
+statistics are for the adhoc topics (test topics against train-
+ing documents disks 1 and 2), and the second statistics are
+for the routing topics (training topics against test docu-
+ments disk 3 only). For example, out of a maximum of
+4000 possible unique documents (40 runs times 100 docu-
+ments), over one4ourth of the documents were actually
+unique. This means that the different systems were lmd-
+ing different documents as likely relevant documents for a
+topic. Whereas this might be expected (and indeed has
+been shown to occur, Katzer et. al. 1982) from widely
+
+
+                                        6
+
+differing systems, these overlaps were often between two
+runs for the same system. One reason for the lack of
+overlap is the very large number of documents that con-
+tain many of the same terms as the relevant documents,
+but the major reason is the very different sets of terms in
+the constructed queries. This lack of overlap should
+improve the coverage of the relevance set, and verifies the
+use of the pooling methodology to produce the sample.
+The merged list of results was then shown to the human
+assessors. Icach topic was judged by a single assessor to
+insure the best consistency of judgment. Varying numbers
+of documents were judged relevant to the topics. For the
+ThEC-2 adhoc topics (topics 101-150), the median num-
+ber of relevant documents per topic is 201, down from
+277 for topics 51-100 (as used for adhoc topics in
+TREC-1). Only 11 topics have more than 300 relevant
+documents, with only 2 topics having more than 500 rele-
+vant documents. These topics were deliberately made
+narrower than topics 51-100 because of a concern that
+topics with more than 300 relevant documents are likely
+to have incomplete relevance assessments.
+
+4. Evaluation
+An important element of TREC was to provide a common
+evaluation  forum. Standard  recall~recision  and
+recallifallout figures were calculated for each TREC sys-
+tem and these are presented in Appendix A. A chart with
+additional data about each system is shown in Appendix
+B. This chart consolidates information provided by the
+systems that describe features and system tinting, and
+allows some primitive comparison of the amount of effort
+needed to produce the results.
+
+4.1 Definition of Recall/Precision and Recall/Fallout
+Curves
+Figure 2 shows typical recall~recision curves. The x axis
+plots the recall values at fixed levels of recall, where
+
+Recall =
+
+   number of relevant items retrieved
+total number of relevant items in collection
+
+The y axis plots the average precision values at those
+given recall values, where precision is calculated by
+
+Precision =
+
+number of relevant items retrieved
+ total number of items retrieved
+
+These curves represent averages over the 50 topics. The
+averaging method was developed many years ago [Salton
+& McGill 1983] and is well accepted by the information
+retrieval community. The curves show system perfor-
+mance across the fall range of retrieval, i.e., at the early
+stage of retrieval where the highly-ranked documents give
+
+high accuracy or precision, and at the final stage of
+retrieval where there is usually a low accuracy, but more
+complete retrieval. Note that the use of these curves
+assumes a ranked output from a system. Systems that
+provide an unranked set of docuttients are known to be
+less effective and therefore were not tested in the TREC
+program.
+The curves m figure 2 show that system A has a much
+higher precision at the low recall end of the graph and
+therefore is more accurate. System B however has higher
+precision at the high recall end of the curve and therefore
+will give a more complete set of relevant documents,
+assuming that the user is willing to look further in the
+ranked list.
+A second set of curves was calculated using the
+recall/fallout measures, where recall is defined as before
+and fallout is defined as
+
+          number of nonrelevant items retrieved
+fallout = total number of nonrelevant items in collection
+
+Note that recall has the same definition as the probability
+of detection and that fallout has the same definition as the
+probability of false alarm, so that the recall/fallout curves
+are also the ROC ~elative Operating characteristic)
+curves used in signal processing. A sample set of curves
+corresponding to the recall/precision curves is shown in
+figure 3. These curves show the same order of perfor-
+mance as do the recall/precision curves and are provided
+as an alternative method of viewing the results. The pre-
+sent version of the curves is experimental as the curve cre-
+ation is particularly sensitive to scaling (what range is
+used for calculating fallout). The high precision section
+of the curves does not show well in figure 3; the high
+recall area dominates the curves.
+Whereas the recall/precision curves show the retrieval
+system results as they might be seen by a user (sicce pre-
+cision measures the accuracy of each retrieved document
+as it is retrieved), the recall/fallout curves emphasize the
+ability of these systems to screen out non-relevant mate-
+rial. In particular the fallout measure shows the discrima-
+tion powers of these systems on a large document collec-
+tion. For example, system A has a fallout of 0.02 at a
+recall of about 0.48; this means that this system has
+found almost 50% of the relevant documents, while only
+retrieving 2% of the non-relevant documents.
+
+42 Single-Value Evaluafion Measures
+In addition to recall/precision and recall/fallout curves,
+there were 2 single-value measures used in TREC-2.
+The first measure, the non-interpolated average precision,
+corresponds to the area under an ideal (non-interpolated)
+recall/precision curve. To compute this average, a
+
+                                             7
+
+precision average for each topic is first calculated. This is
+done by computing the precision after every retrieved rel-
+evant document and then averaging these precisions over
+the total number of retrieved relevant documents for that
+topic. These topic averages are then combined (averaged)
+across all topics in the appropriate set to create the non-
+interpolated average precision for that set.
+The second measure used is an average of the precision
+for each topic after 100 documents have been retrieved for
+that topic. This measure is useful because it reflects a
+clearly comprehended retrieval point. It took on added
+impor~~e in the TREC environment because only the
+top 100 documents retrieved for each topic were actually
+assessed. For this reason it produces a guaranteed evalua-
+tion point for each system.
+
+4.3 Problems with Evaluation
+Since this was the first time that such a large collection of
+text has been used in open system evaluation, there were
+some problems with the existing methods of evaluation.
+The major problem concerned a turesholding effect
+caused by the inability to evaluate ALL documents
+retrieved by a given system.
+For TREC- 1 the groups were asked to send in only the top
+200 documents retrieved by their systems. This artificial
+document cutoff is relatively low and systems did not
+retrieve all the relevant documents for most topics within
+the cutoff. All documents retrieved beyond the 200 mark
+were considered nonrelevant by default and therefore the
+recall/precision curves became maccurate after about 40%
+recall on average. TREC-2 used the top 1000 documents
+for evaluation. Figure 4 shows the difference in the
+curves produced by various evaluation thresholds, includ-
+ing a curve for no threshold (similar to the way evaluation
+has been done on the smaller collections.). These curves
+show that the use of a 1000-document cutoff has solved
+most of the thresholding problem.
+Two more issues in evaluation have become important.
+The first issue involves the need for more statistical evalu-
+ation. As will be seen in the results, the recall/precision
+curves are often close, and there is a need to check if there
+is truly any statistically significant differences between
+two systems' results or two sets of results from the same
+system. This problem is currently under investigation in
+collaboration with statistical groups experienced in the
+evaluation of information retrieval systems.
+Another issue involves getting beyond the averages to bet-
+ter understand system performance. Because of the huge
+number of documents and the long topics, it is very
+
+            Sample Recall/Precision Curves
+1.00
+
+
+0.80
+
+
+0.60
+
+
+0.40
+
+
+0.20
+
+
+0.00
+   0.00     0.20    0.40   0.60    0.80     1.00
+                       Recall
+               System A~ System B
+
+
+            Sample Recall/Fallout Curves
+
+0.75
+
+0.7
+
+0.65
+
+0.6
+
+0.55
+
+0.5
+
+0.45
+
+0.4
+
+      I                 IIIIIII
+0.35
+   0.00 0.02 0.04 0.06 0.08 0.10 0.12 0.14 0.16 0.18 0.20
+                      Fallout
+           ~SystemA ~SystemB
+
+
+           Figure 2. A Sample Recall~r~cisioii Curve.
+           Figure 3. A Sample Recal1~allot Curve.
+
+
+                      8
+
+1.00
+
+
+0.80
+
+
+0.60
+
+
+0.40
+
+
+0.20
+
+
+0.00
+
+         Effects of Cutoff on Evaluation
+
+
+0.00     0.20      0.40     0.60    0.80     1.00
+                      Recall
+
+              ~at2OO ~at5OO ~at1OOO~fiill
+
+
+             Figure 4. Effect of evaluation cutoffs on recall/precision curves.
+
+difficult to perform failure analysis on the results to better
+understand the retrieval processes being tested. Without
+better understanding of underlying system performance, it
+will be laard to consolidate research progress. Some pre-
+liminary analysis of per topic performance is provided in
+section 6, and and more attention will be given to this
+problem in the future.
+
+5. Results
+5.1 Inti~uction
+In general the ThEC-2 results showed signilicant
+improvements over the ~IREC-l results. Many of the
+original ThEC-l groups were able to "complete" their
+system rebuilding and tuning tasks. The results for
+ThEC-2 therefore can be viewed as the "best first-pass"
+that most groups can accomplish on this large amount of
+data. The adhoc results in particular represent baseline
+results from the scaling-up of current algorithms to large
+test collections. The better systems produced similar
+results, results that are comparable to those seen using
+these algorithms on smaller test collections.
+The routing results showed even more improvement over
+ThEC-l routing results. Some of this improvement was
+due to the availability of large numbers of accurate
+
+
+                                     9
+
+relevance judgments for training (unlike TREC-l). but
+most of the improvements came from new research by
+participating groups into better ways of using the training
+data.
+For full descriptions of each system discussed in this sec-
+tion, see the individual papers in this proceedings.
+
+52 Adhoc Results
+The acihoc evaluation used new topics (101-150) against
+the two disks of training documents (disks 1 and 2).
+There were 44 sets of results for adhoc evaluation in
+ThEC-2, with 32 of them based on runs for the full data
+seL of these, 23 used automatic construction of queries,
+9 used manual construction, and 2 used feedback.
+Figure 5 shows the recall/precision curves for the six
+ThEC-2 groups with the highest non-interpolated average
+precision using automatic construction of queries. The
+results marked "INQOOl" are the INQUERY system from
+the University of Massachusetts (see Croft, Callan &
+Brogho paper).  This system uses probabilistic term
+weighting and a probabilistic inference net to combine
+various topic and document features. The results marked
+"dortQ2", "Brkly3" and "cmlL2" are all based on the use
+of the Cornell SMART system, but with important varia-
+tions. The "c~2" run is the basic SMART system from
+
+Cornell University (see Buckley, Allan & Salton paper),
+but using less than optimal term weightings (1,y mistake).
+The 1tdortQ2'1 results from the University of Dortmund
+come from using polynoinial regression on the training
+data to find weights for various pre-set term features (see
+Fuhr, Pfeifer, Brenikamp, Polimann & Buckley paper).
+The "Brkly3'9 results from the Univ&sity of California at
+Berkeley come froin performing logistic regression analy-
+sis to learn optimal weighting for various term frequency
+measures  (see Cooper, Chen & Gey paper).  The
+"CLARTA"   system from the CLARIT Corporation
+expands each topic with noun phrases found in a the-
+saurus that is automatically generated for each topic (see
+Evans & Lefferts paper). The "lsiasm" results are from
+Bellcore (see Dumals pape~. This group uses latent
+semantic indexing to create much larger vectors than the
+more traditional vector-space models such as SMART.
+The run marked "lsiasm91 represents only the base
+SMART pre-processing results, however. Due to process-
+ing errors the "improved'9 LSI run produced unexpectedly
+poor results.
+Figure 6 shows the recall/precision curve for the six
+TREC-2 groups with the highest non-interpolated average
+precision using manual construction of queries. It should
+be noted that varying amounts of manual intervention
+were used. The results marked "INQOO2", "siems2", and
+"CLARIM" are automatically generated queries with
+manual modifications. The "INQOO2" results reflect vari-
+ous manual modifications made to the "INQOOl" queries,
+with those modifications guided by strict rules. The
+"siems2" results from Siemens Corporate Research, Inc.
+(see Voorhees paper) are based on the use of the Cornell
+SMART system, but with the topics manually modified
+(the "not91 phases removed). These results were meant to
+be the base run for improvements using WordNet, but the
+improvements did not materialize.  The "CLARTM19
+results represent manual weighting of the query terms, as
+opposed to the automatic weighting of the terms that was
+used in "CLARTA." The results marked "Vtcms2",
+"CnQs~", and "TOPI~" are produced from queries con-
+structed completely manually. The "Vtcms211 results are
+from ~nginia Tech (see Fox & Shaw paper) and show the
+effects of combining the results from SMART vector-
+space queries with the results from manually-constructed
+soft Boolean P-Norm type queries. The "CnQs~" results,
+from ConQuest Software (see Nelson paper), use a very
+large general-purpose semantic net to ald in constructing
+better queries from the topics, along with sophisticated
+morphological analysis of the topics. The results marked
+19T0P1C219 are from the TOPIC system by Verity Corp.
+(see Lehman paper) and reflect the use of an expert sys-
+tem working off specially~onstructed knowledge bases to
+improve performance.
+
+
+                                             10
+
+Several comments can be made with respect to these
+adhoc results. First, the better results (most of the auto-
+matic results and the three top manual results) are very
+similar and it is unlikely that there is any statistical differ-
+ences between them. There is clearly no "best" method,
+and the fact that these systems have very different
+approaches to retrieval, including different term weighting
+schemes, different query construction methods, and differ-
+ent similarity match methods implies that there is much
+more to be learned about effective retrieval techniques.
+As will be seen in section 6, whereas the averages for the
+systems may be similar, the systems do better on different
+topics and retrieve different subsets of the relevant docu-
+ments.
+A second point that should be made is that the automatic
+query construction methods continue to perform as well
+as the manual construction methods. Two groups (the
+INQUERY system and the CLARIT system) did explicit
+comparision of manually-modified queries vs those that
+were not modified and concluded that manual modifica-
+tion provided no benefits. The three sets of results based
+on completely manually-generated queries had even
+poorer performance than the manually-modified queries.
+Note that this result is specific to the very rich TREC top-
+ics; it is not clear that this will hold for the short topics
+normally seen in other retrieval environments.
+As a final point, it should be noted that these adhoc results
+represent significant improvements over the results from
+TREC-1. Figure 7 shows a comparison of results for a
+typical system in TREC-1 and TREC-2. Some of this
+improvement is due to improved evaluation, but the differ-
+ence between the curve marked "TREC-1" and the curve
+marked "TREC-2 looking at top 200 ouly" shows signifi-
+cant  performance   improvement.  Wbereas this
+improvement could represent a difference in topics (the
+TREC-l curve is for topics 51-100 and the TREC-2
+curves are for topics 101-150), the TREC-2 topics are
+generally felt to be more difficult and therefore this
+improvement is likely to be an understatement of the
+actual improvements.
+Only two groups worked with less than the full document
+collection. Figure 9 shows the results for the one group
+with official TREC-2 category B results (the results from
+UCLA were received after the deadline). This figure
+shows the best results from New York University (see
+Strzalkowski & Carballo paper), compared with a cate-
+gory B version of the Cornell SMART results. The
+"nyuir3" results reflect a very intensive use of natural lan-
+guage processing (NLP) techniques, including a parse of
+the documents to help locate syntactic phrases, context-
+sensitive expansion of the queries, and other NLP
+improvements on statistical techniques.
+
+0
+
+1.00
+
+
+0.80
+
+
+0.60
+
+
+0.40
+
+
+0.20
+
+Best Automatic Adlioc
+
+0
+
+ 0.00 0.00    0.20    0.40    0.60     0.80   1.00
+
+                          Recall
+           INQOOl    * doitQ2  A Brkly3
+           CLARTA~ cnilL2     __ isiasm
+
+
+                    Best Manual Adlioc
+ 1.00
+
+
+ 0.80
+
+
+ 0.60
+
+0.40
+
+
+0.20
+
+
+0.00
+
+0.00    0.20     0.40
+                   Recall
+
+0.60
+
+0.80    1.00
+
+      __INQ002  * siems2    CLARTM
+        Vtcms2 __CnQst2     TOPIC2
+
+
+          Figure 5. Best Automatic Acihoc Results.
+           Figw~ 6. Best Manual Adlioc Results.
+
+
+                     11
+
+0
+
+1.00
+
+
+0.80
+
+
+0.60
+
+Performance Improvements in Adlioc
+
+  0.40
+
+
+  0.20
+
+
+  0.00
+
+     0.0      0.2     0.4    0.6     0.8      1.0
+                        Recall
+
+ ~- TREC-1                  * TREC-2 looking at top 200 only
+
+ A TREC-2
+
+
+0
+
+  1.00
+
+
+  0.80
+
+
+  0.60
+
+
+  0.40
+
+
+  0.20
+
+
+  0.00
+
+                 Adlioc Category B
+
+     0.00    0.20     0.40    0.60    0.80   1.00
+                         Recall
+
+                cmlVB   nyuir3
+
+
+         Figure 7. Typical Improvements in Adlioc Results.
+             Figure 8. Category B Adlioc Results.
+
+
+                        12
+
+53 Routing Results
+The routing evaluation used a subset of the training topics
+(topics 51-100 were used) against the new disk of test
+documents (disk 3). There were 40 sets of results for
+routing evaluation, with 32 of them based on runs for the
+flill data set. of the 32 systems using the flill data set, 23
+used automatic construction of queries, and 9 used man-
+ual construction.
+Figure 9 shows the recall/precision curves for the six
+TREC-2 groups with the highest non-interpolated average
+precision using automatic construction of the routing
+queries. Again three systems are based on the Cornell
+SMART system. The plot marked "crnlCl" is the actual
+SMART system, using the basic Rocchio relevance feed-
+back algorithms, and adding many terms (up to 500) from
+the relevant traing documents to the terms in the topic.
+The "dortPl" results come from using a probabilistically-
+based relevance feedback instead of the vector-space algo-
+rithm, and adding only 20 terms from the relevant docu-
+ments to each query. These two systems have the best
+routing results. The "Brkly5" system uses logistic regres-
+sion on both the general frequency variables used in their
+adhoc approach and on the query-specific relevance data
+available for training with the routing topics. The results
+marked "cityr2" are from City University, London (see
+Robertson, Walker, Jones, Hancock-Beaulieu & Gafford
+paper). This group automatically selected variable num-
+bers of terms (1~25) from the training documents for
+each topic (the topics themselves were not used as term
+sources), and then used traditional probabilistic reweight-
+ing to weight these terms. The "INQOO3" results also use
+probabilistic reweighting, but use the topic terms,
+expanded by 30 new terms per topic from the training
+documents. The results marked "lsir2" are more latent
+semantic indexing results from Beilcore. This run was
+made by creating a filter of the singular-value decomposi-
+tion vector sum or centroid of all relevant documents for a
+topic (and ignoring the topic itself).
+Figure 10 shows the recall4,recision curves for the six
+TREC-2 groups with the highest non-interpolated average
+precision using manual construction of the routing
+queries. The results marked "INQOOI" are from the
+INQRY system using an inferential combination of the
+"INQ003" queries and manually modified queries created
+from the topic. The "trw2" results represent an adaptation
+of the TRW Fast Data Finder pattern matching system to
+allow use of term weighting (see Mettler paper). The
+queries were manually constructed and the term weight-
+ing was learned from the training data. The "geerdi"
+results from GE Research and Development Center (see
+Jacobs paper) also come from manually constructed
+queries, but using a general-purpose lexicon and the train-
+ing data to suggest input to the Boolean pattern matcher.
+
+
+                                   13
+
+The results marked "CLARThI" are similar to the
+"CLARTM" adhoc results except that the training docu-
+ments were used as the source for thesaurus building, as
+opposed to using the top set of retrieved documents. The
+"rutcombx" results from Rutgers University (see Belitin,
+Kantor, Cool & Quatrain paper) come from combining 5
+sets of manually generated Boolean queries to optimize
+performance for each topic.  The results marked
+"TOPIC2" are from the TOPIC system and reflect the use
+of an expert system working off specially-constructed
+knowledge bases to improve performance.
+As was the case with the adhoc topics, the automatic
+query construction methods continue to perform as well
+as, or m this case, better than the manual construction
+methods. A comparision of the two INQRY runs illus-
+trates this point and shows that all six results with manu-
+ally generated queries perform worse than the six runs
+with automatically-generated queries. The availability of
+the training data allows an automatic tuning of the queries
+that would be difficult to duplicate manually without
+extensive analysis.
+Unlike the adhoc results, there are two runs ("crnlCl" and
+"dor~1") that are clearly better than the others, with a sig-
+nificant difference between the "crnlCl" results and the
+"do~1" results and also significant differences between
+these results and the rest of the automatically-generated
+query results. In particular the Cornell group's ability to
+effectively use many terms (up to 500) for query expan-
+sion was one of the most interesting findings in I1~EC-2
+and represents a departure from past results (see Buckley,
+Allan, & Salton paper for more on this).
+As a final point, it should be noted that the routing results
+also represent significant improvements over the results
+from ThEC-l. Figure 11 shows a comparison of results
+for a typical system in JREC- 1 and ThEC-2. Some of
+this improvement is due to the improved evaluation tech-
+niques, but the difference between the curve marked
+"ThEC-1" and the curve marked "TREC-2 looking at top
+200 only" shows significant performance improvement.
+There is even more improvement for the routing results
+than for the adlioc results, due to better training data
+(mosfly non-existent for ThEC-1) and to major efforts by
+many groups in new routing algorithm experiments.
+Only four groups worked with less than the full document
+collection. Figure 12 shows the results for two of the
+groups m category B compared with a category B version
+of the Cornell SMART results. These curves show the
+results of runs from New York University (that were done
+in a similar method as that used for the adhoc results) and
+results from Dathousie University.
+
+1.00
+
+
+0.80
+
+
+0.60
+
+
+0.40
+
+
+0.20
+
+             Best Automatic Routing
+
+0.00 0.00      0.20     0.40     0.60    0.80      1.00
+
+                           Recall
+             cnilC 1    dortP 1    city12
+             INQOO3     Brkly5     lsir2
+
+
+                   Best Manual Routing
+1.00
+
+
+0.80
+
+
+0.60
+
+
+0.40
+
+
+0.20
+
+
+0.00
+    0.00       0.20     0.40     0.60    0.80      1.00
+                           Recall
+
+     * INQ004  ~trw2     A gecrdl
+       CLARTM~ nitcombx    TOPIC2
+
+
+         Figure 9. Best Automatic Routmg Results.
+          Figure 10. Best Manual Routing Results.
+
+
+                     14
+
+  1.00
+
+
+  0.80
+
+
+  0.60
+
+
+  0.40
+
+
+  0.20
+
+
+  0.00
+
+0
+
+          Petfonnance Improvements In Routing
+
+
+     0.0      0.2     0.4    0.6     0.8      1.0
+                        Recall
+
+ ~- TREC-1                   * TREC-2 looking at top 200 only
+   TREC-2
+
+
+  1.00
+
+
+  0.80
+
+
+  0.60
+
+
+  0.40
+
+
+  0.20
+
+
+  0.00
+
+                 Routing Category B
+
+     0.00     0.20   0.40     0.60    0.80    1.00
+                         Recall
+
+            cmlRB * nyu~     DalTx2
+
+
+        Figure 11. Typical Improvements in Routing Results.
+            Figure 12. Category B Routing Results.
+
+
+                        15
+
+6. Some Preliminary Analysis
+
+6.1 Int~duction
+The recall~recision curves shown in section 5 represent
+the average performance of the various systems on the full
+sets of topics. It is important to look beyond these aver-
+ages in order to learn more about how a given system is
+performing and to discover some generalizable principles
+of retrieval.
+Individual Systems are able to do this by performing fail-
+ure analysis (see Dumais paper in this proceedicgs for a
+good example) and by rimlng specific experiments to test
+hypotheses on retrieval behavi~ within a given system.
+However, additional infomiation can be gained by doing
+some cross-system comparison: information about spe-
+cific system behavior and information about generalized
+information retrieval principles. One way to do this is to
+examine system behavior with respect to test collection
+characteristics. A second method is to compare system
+behavior on a topic by topic basis.
+
+62 The Effects of Test Collection Characteristics
+One particular test collection characteristic is the length of
+documents, both the average length of documents in a col-
+lection, and the variation in document length across a col-
+lectio~ Document length has significant effect on system
+performance. A term that appears 10 times in a "short"
+document is likely to be more important to that document
+than if the same term appeared 10 times in a "long" docu-
+ment. Table 3 shows system performance across the dif-
+ferent document subcollections for each of the adhoc top-
+ics, listing the total number of documents that were
+retrieved by the system as well as the number of relevant
+documents that were retrieved.
+Two particiilar points can be seen from table 3. First, the
+better systems retrieve about 50% relevant documents
+from all the subcollections except the Federal Register
+(FR). For this subeollection the retrieval rates are in the
+25% range because the varied length of these documents
+makes retrieval difficult.
+The second point concerning table 3 is that the retrieval
+rate across the subeollections is highly varied among the
+systems. For example the "Brkly3" results show that
+many fewer Federal Register documents and more AP
+were retrieved than for the INQUERY system, whereas
+the "CLARTA" results show more DOE abstracts and
+fewer Wall Street Journal being retrieved. These "biases"
+towards particular subcollections reflect the methods used
+by systems such as the length normalization issues,
+domain concentrations of terminology, and methods used
+to "merge" results across subcollections (often implicit
+
+merges during indexing).
+
+A second test collection characteristic worth examining is
+the varied broadness and varied difficulty of the topics.
+An analysis was done [Harman 1994] to find the topics
+for which the systems retrieved the lowest percentage of
+the relevant documents on average. These topics are 61,
+67,76,77, 81, 85,90,91,93, and 98 for the routing topics
+and 101, 114, 120, 121, 124, 131, 139, 140, 141, and 149
+for the adhoc topics. Tables 4 and 5 show the top 8 sys-
+tem runs for the individual topics based in the average
+precision (noninterpolated). These tables mix automatic,
+manual, and feedback results for category A, and also cat-
+egory B results, so they should be interpreted careflilly.
+However they do demonstrate that no consistent patterns
+appear for the "hard" topics. The two best routing runs
+("crnlCl" and "do~1") only do well on about half of
+these topics, and the adhoc results are even more varied.
+Often systems that do not perform well on average are the
+top performing system for a given topic. This verifies
+that, as usual, the variation across the topics is greater
+than the variation across systems.
+
+6.3 C~~ss-System Analysis
+Tables 4 and 5 not only show the wide variation in system
+performance, but also raise several questions about system
+performance in general.
+  1. Does better average performance for a system
+     result fro[n better performance on most topics or
+     from comparable performance on most topics and
+     significantly better performance on other topics?
+  2. if two systems perform similarly on a given topic,
+     does that mean that they have retrieved a large
+     proportion of the same relevant documents?
+  3. Do systems that use "similar" approaches have a
+     high overlap in the particular relevant documents
+     they retrieve?
+  4. And, if number 3 is not true, what are the issues
+     that affect high overlap of relevant documents?
+
+Work is ongoing at NIST on these questions and oth&
+related issues.
+
+16
+
+ Table 3. Number of Documents Retrieved~~elevant by Document Subcollecfion
+
+RwiThg         AP         DOE         FR          WSJ          ZJH~
+Brkly3       2414/1155   293/155      97/22     1847/831      349/121
+ citril      2152/970    474/179     129/16     1865/770      380/177
+ citri2      2206/1019   348/156     250/67      1814/756     382/179
+ cityau      1578/794    93/46       1359/147   1603/661      367/108
+ citynif     1939/1226   24/21       584/146    2026/812      427/173
+CLARTA       2034/1048   403/170     412/95      1795/819     356/190
+CLARIM       2131/1087   388/208     315/87      1769/820     397/221
+CnQstl       2272/921    254/112     311/74      1763/689     400/181
+CnQs~        2214/980    191/94      453/93      1787/738     355/184
+ crnlL2      1914/944    648/240     155/33      1774/773     509/213
+crnlV2       2164/1083   687/236      79/22      1600/682     470/194
+ dortL2      2081/1053   305/169     473/78      1818/815     323/166
+dor~Q2       2205/1053   357/171     186/44      1924/874     328/171
+ erirnal     1077/501    85/51       1364/110   2251/752      223/94
+ erirna2     1267/614    122/68      1219/125   2124/773      268/133
+ gecr(12     2250/852    294/91      319/68      1952/743     185/77
+HNCad1       2140/1042   409/145     164/53      1875/839     412/181
+HNCa~        2163/1286   306/159     171/67     1974/1005     386/237
+INQ001       2031/1071   206/107     297/115    2184/1023     282/151
+INQ002       2087/1111   201/120     276/111    2141/1010     295/177
+ isial       2278/771    587/124      124/0      1448/376     563/61
+ isiasm      2168/1052   711/211      70/17      1607/690     444/183
+ nyuirl        0/0         0/0        0/0       5000/1360      0/0
+ nyuir2        0/0         0/0        0/0       5000/1547      0/0
+ nyuir3        0/0         0/0        0/0       5000/1547      0/0
+ pircs3      2109/1021   358/152     246/86      1999/835     288/139
+ pirc84      2108/1014   342/148     254/85     2012/863      284/137
+ proeol      1099/1024   315/83      1178/205    1377/980     1031/277
+ proeol      1667/1024   695/83      381/205     1350/980     907/277
+rutcombl     1029/368    181/72      112/18      963/312      215/79
+ruffined     945/309     131/46       161/9      963/282      200/77
+ schaul      2038/901    534/189     173/18      1778/706     477/186
+ siems2      2225/1147   631/218      62/8       1655/770     427/202
+ siems3      2238/1173   654/208      53/7       1619/764     436/194
+ TMC8        2054/859    146/44      763/59      1472/526     565/183
+ TM~         1923/802    77/29       975/63      1401/507     624/171
+TOP102       2292/9%     152/98      344/100     1762/889     384/229
+UREKA2       385/215       0/0       4003/87     354/144      258/10
+UREKA3       755/405       5/2       2654/67     1045/348     441/22
+ uicah       1612/628    234/104     797/137     1846/356     511/167
+VTcms2       2110/1130   232/107     444/95      1859/894     355/169
+ totalS      71354/4630 12073/669  21407/396    793%/3929    15504/1154
+
+
+                                     17
+
+             Table 4. System Rankings (using Average Precision) on Individual Topics
+
+51     nyuir2     nyuirl      gecrdl      TOPI~       ADS2        cityr2     INQ004     INQ003
+52    INQ004      INQ003      Brkly4      pixcs2     VTcms2       gecrdl     pircsl      trwl
+53     gecrdl     nyuir2      trw2        nyuirl     CLARThi     CLARTA      do~1       INQ003
+54     siemsl     crnlRl      schaul      Brkly4     INQ003       crnlCl      Isiri     CLARTM
+55     dortPl     cmlRl       crniCl      lsir2       dortVl     CLARTM      cityri     CLARTA
+56     trw2       dor~1       dortVl      INQ003     INQ004      HNCrt1      c~1         crnlCl
+57    INQ003      lsir2       INQ004      trw2        crnlCl      TMC6      VTcms2       crnlRl
+58     nyuir2     nyuirl      ruteombx    INQ003      lsir2      INQ004      gecrdl      Brkly5
+59     trw2       Brkly5      gecrdl      isiri      HNCrt1      VTcms2      HNCrt2      lsir2
+60     dortPl     dortVl      rutcombx    crnlRl     INQ004       crnlCl     INQ003     TOPIC2
+61    TOPIC2      rutcombx    Brkiy4      idsr~       cityr2      isiri      INQ004      Brkly5
+62     criilRl    emiCi       dortpl      isiri      CLARTA       Brkly4    CLARTM       Brkly5
+63    dortVl      erniCi      pircs2      cmlRl       pircsl      siemsl     HNCrtl      dortPl
+64     nyuir2     lsir2       INQ004      INQ003      Brkly5      crnlCl     crnlRl      cityr2
+65     criliCi    dortVl      do~1        HNCrt1      criliRi     trw2       HNC~        lsirl
+66     pircs2     pircs 1     dortpl      dortVl      cmlRl       erniCi     siemsl     INQ004
+67     crnlRl     criliCi     INQ004      nyuir2      dortPl      cityr2      lsir2     INQ003
+68     Brkly5     criliCi     cityri      cityr2      trw2       INQ003       lsir2     CLARTA
+69     eninri     Brkly5      dortVl      cityr2      cityri      erirnr2     isiri      Brkly4
+70     TMC6                   ruteombx    VTcms2     HNCrt2       Brkly5     INQ004      cityr2
+71     cmlRl      crnlCl      HNC~        siemsl     CLARTM      HNCrt1     CLARTA       lsir2
+72     crnlRl     criliCi     dortPl      siemsl     INQ003       Brkly5     INQ004      cityri
+73    INQ003      crnlRl      cityr2      INQ004      erniCi       trw2      dortl'1     dortVl
+74     crnlRl     rutco[nbx   crnlCl      CLARTA      Brkly5      dortPl     siemsl      dortVl
+75     erniCi     ADS2        crnIRl       trwl       lsir2       dortPl     cityr2      nyuir2
+76     trw2       cityr2      TOPI~       TMC6        TM~         crnlCl     criliRi    INQ003
+77     crIliRi    crIliCi     INQ003      CLARTM      dortVl      do~1       JNQ004     CLARTA
+78    rutcombx    TOPIC2      INQ004      CLARTM     INQ003       dortVl     pircs2     CLARTA
+79     cityr2     criliRi     crnlCl      INQ004      dortPl      gecrdl      lsir2     INQ003
+80     trwl       criliCi     cmlRl       cityri      Brkly5     INQ003      INQ004      cityr2
+81     gecrdl                 TMC6        cityr2      trw2       VTcms2      HNC~        cityri
+82    CLARTM      CLARTA       trw2       Brkly5      pircsl      pircs2     dortVl      dortPl
+83    TOPIC2      gecrdl       trwl       crnlCl     HNCrt1       cmlRl       cityr2     cityri
+84     dortPl     criliCi      lsir2      geerdi      criliRi     dortVl      trwl      VTcms2
+85     criliRi    emiCi       dortPl      Brkly5      trw2        nyuir2     dortVl      siemsl
+86     gecrdl     VTcms2       lsir2       lsirl      cityrl      crnlRl      cityr2     crnlCl
+87     lsir2      gecrdl      cityri      cityr2     HNCrt1       Brkly5     crnlCl     HNCrt2
+88     crIliCi    cityr2      cmlRl       Brkly4      dortPl       lsir2     dortVl      BridyS
+89     trw2       nyuirl      TOPI~       TMC6       HNCrt1       uicrl      HNCrt2      gecrdl
+90     gecrdl     trwl        crnlCl      cmlRl       schaul     VTcms2      Brkly5      dortPl
+91     trwl       INQ004      schaul      Brkly5      trw2       TOPI~       HNC~       HNCrt1
+92     gecrdl     CrIilR1      lsir2      crnlCl     CLARTh4     CLARTA      nyuirl     INQ003
+93    INQ004      rutco'nbx   INQ003      TMC6        trwl        Brkly5     TMC7        gecrdl
+94     lsir2      criliCi     cityr2      gecrdl     INQ004      CLARTM       trw2       cityri
+95    VTcms2      gecrdl      crniCl      Brkly5      c~1         Brkly4      trwl       siemsl
+96     dortPl     TOPI~       cityri      dortVl      cityr2       lsir2     crnlCl     rutcombx
+97     idsra2     HNCrt1      nyuir2      dortPl      HNCrt2       lsir2     crnlCl     TOPIC2
+98    HNCrt1      HNCrt2      crIliCi      trw2       DalTx2     INQ004      crnlRl      dortPl
+99     lsir2      crnlRl      dortPl      CLARTA      crnlCl     CLARTM      dortVl      cityr2
+100    erniCi     criliRi     dortPl       lsir2      dortVl     CLARTA     CLARThI      lsirl
+
+
+                                                18
+
+             Table 5. System Rankings (using Average Precision) on Individual Topics
+
+101   rutcombl   VTcms2      cnilV2    INQ()()2
+                                                   dortQ2      pircs3      Brkiy3     CLARTM
+102    crIilL2    crnlV2     VTcms2     siems3
+                                                   dortL2      INQ()()2    siems2     CLARThI
+103    siems3     siems2     scilaul    citril     cmlV2
+                                                               isiasm     HNCa~       `INCadi
+104    dortQ2    CLARTM      CLARTA     pircs4     pi'~s3
+                                                               dortL2     HNCa~       isiasm
+105    citri2     isiasm     citril     siems2
+                                                   siems3      cmlV2       schaul     cmlL2
+106   VTcms2     INQ()()2    INQOOl    TOPIC2
+                                                   pucs4       pircs3     CLARTM      do~2
+107   CnQstl      CnQs~      nitcombl  TOPI~
+                                                   VTcms2      INQ002     ruffined    CLARIM
+108    citril     dortQ2     siems3    VTcms2
+                                                   siems2      HNCa~       schaul     dortL2
+109    do~2       cmlL2      dortQ2    CLARTA
+                                                   CLARTM      pircs3      cmlV2      pirc~
+110   INQ002     INQOOl      Brkly3     dortQ2
+                                                   nyuir3      nyuir2      cityau     siems2
+111   CLARTA     CLARTM      INQOOl     dortQ2
+                                                   Brkly3      siems2      siems3     pirc54
+112   INQ002     INQOOl      VTcms2     nyuir2
+                                                   nyuir3      `INCadi    HNCa~       CnQs~
+113   VTcms2      cxiiIL2    dortL2     cmlV2
+                                                   nyuirl      siems2     CLARTM      INQ002
+114   INQ002      cityau     VTcms2    INQOOl
+                                                   siems3      siems2      isial      ToPI~
+115    nyuir2     nyuir3     nyuirl     siems2
+                                                   dortL2      cmlV2       siems3     cmlL2
+116   VTcms2     CLARTA      HNCad2    `INCadi
+                                                   siems3      siems2     CLARTM      Brkiy3
+117    citri2     citril     dortQ2    INQOOl
+                                                   TMC8        isiasm      gecr(12    schaul
+118    nyuir2     nyuir3     nyuirl    TOPIC2
+                                                   citynif     dortQ2     CLARTA      INQOOl
+119    nyuirl     nyuir2     nyuir3    INQ002
+                                                   INQOOl      dortQ2      citynif    VTcms2
+120    citymf     nyuir2     nyuir3     nytifri
+                                                   CnQs~       CnQstl     VTcms2      eri~
+121   TOPI~      CLARTM      VTcms2     Brkiy3
+                                                   nyuirl      prceol     INQ002      rut~ned
+122    siems2     siems3     INQ002    INQOOl
+                                                   dortQ2      Brkly3     CLARTM      cmlV2
+123    nyuirl     nyuir2     nyuir3
+                                       CLARTA      INQOOl      INQ002     CLARTM      pirc54
+124    nyuir2     nyuir3     nyuirl
+                                        dortL2     dor~2       INQOOl      Brkly3     TMC9
+125    cinlV2     Brkly3     crnlL2    CLARTM
+                                                   siems3      CLARTA      pircA      pircs3
+126    siems3     cm'L2      siems2     Brkly3
+                                                   ciiilV2     INQ002     CLARTM      INQOOl
+127    cityau     Brkly3     CLARTA
+                                       HNCa~       INQOOl      INQ002      siems2     siems3
+128   VTcms2     CLARTA      siems3
+                                        siems2     CLARTM      TOPIC2      citril     isiasm
+129   INQOOl     INQ002      cityau
+                                       CLARTM      siems2      Brkly3      crnlL2     CLARTA
+130   INQO()2    INQOOl      dortQ2
+                                        cmlL2      pnc$4       CLAR~       dortL2     pircs3
+131   ToPI~      VTcms2      HNCadl
+                                       HNCa~       siems3      Brkly3      siems2     INQ002
+132    dortL2    INQOOl      INQ002
+                                        citril     citri2      dortQ2     HNCad2      crnlL2
+133   CnQs~       CriQstl    rutcombl
+                                        pircs4     INQ002      pircs3      cityau     INQOOl
+134    c~2        dortL2     nyuirl     nyuir2
+                                                   nyuir3      INQ()()2   INQOOl      dortQ2
+135    nyuir2     nyuir3
+                             nyuirl     Brkly3     INQOOl      INQ002      siems3     siems2
+136   VTcms2      CnQstl     CnQst2
+                                       CLARTM      pixc84      CLARTA      dortQ2     ToPI~
+137   CLARTA      nyuir2     nyuir3     Brkly3
+                                                   siems2      siems3     CLARTM      nyuirl
+138    nyuir2     nyuir3     rutfined
+                                       ruteombi    nyuirl      schaul      gecr(12    citril
+139    nyuir2     nyuir3     nyuirl
+                                       VTcms2      dortL2      HNCad2      dortQ2     HNCad1
+140    nyuir2     nyuir3     nyuirl
+                                        dortQ2     dori2       INQ002      siems3     siems2
+141   VTcms2     INQ002      CnQs~
+                                       INQOOl      Brkly3      dori2       dortQ2     CnQstl
+142    dortQ2     siems2     cxiilL2
+                                       VTcms2      siems3      CLARIM      cmlV2      Brkly3
+143   INQ002     INQOOl      siems2
+                                        siems3     crnlL2      cmlV2       nyuir2     nyuir3
+144   VTcms2      Brkiy3     citymf
+                                        cnilV2     siems3      isiasm      siems2     HNCad2
+145    cmlL2      crnlV2     dori2
+                                       CLARTM      nyuirl      siems3      siems2     dortQ2
+146    Brkly3     siems3     siems2
+                                        isiasm     crnlV2      schaul     CLARTM      citril
+147   HNCad2     `iNCadi     vr~~s2
+                                        citril     JNQ()()2    INQOOl      citynif    CLARTA
+148    isiasm     cmIL2      cm'V2
+                                        siems2     siems3      BIkly3      dortL2     dortQ2
+149    nyuirl     CnQs~      ToPI~
+                                        CnQstl     CLARTA      rutf~ned    Brkly3     ruteombi
+150    cIn'L2     dortQ2     CLAR~
+                                        siems3     INQ002      INQOOl      cmlV2      siems2
+
+
+                                           19
+
+6.4 Summary
+The ~fl~EC-2 conference demonstrated a wide range of
+different approaches to the retrieval of text from large
+document collections. There was significant improvement
+in retrieval performance over that seen in TREC-1, espe-
+cially in the routing task.  The availability of large
+amounts of training data for routing allowed extensive
+experimentation in the best use of that data, and many dif-
+ferent approaches were tried in IREC-2. The automatic
+construction of queries from the topics continued to do as
+well as, or better than, manual construction of queries,
+and this is encouraging for groups supporting the use of
+simple natural language interfaces for retrieval systems.
+How well is the TREC initiative meeting its goals? There
+is certalaly increased research using a much larger collec-
+tion than had previously been tested. This leads not only
+to discoveriiig interesting research problems, but also to
+developing algorithms that are ripe for transfer into com-
+mercial systems. The conference itself provided the
+opportunity for this; there was open exchange between
+the research groups in universities and the research groups
+in commercial organizations and this is a very critical part
+of teclmology transfer.
+There will be a third TREC conference in 1994, and all
+the systems that participated in TREC-2 will be back,
+along with additional groups.
+
+7. References
+
+Harman, D. (1993) (Ed.).The First Text REtrieval Confer-
+ence (TREC-1). National Institute of Standards and Tech-
+nology Special Publication 500-207,
+
+Harman, D. (1994). Data Preparation. In: Merchant R.
+(Ed.).The Proceedings of the TIPSTER Text Program -
+Phase L San Mateo, California: Morgan Kanfinaun Pub-
+lishing Co., 1994.
+
+Katzer. 3., McGill, M.J., Tessier, J.A., Frakes, W., and
+DasGupta, P. (1982). A Study of the Overlap among Doe-
+ument  Representations.      Information Technology:
+Research and Development, 1(2), 261-274.
+
+Salton, G. and McGill, M. (1983). Introduction to Modern
+Information Retrieval. New York, NY: McGraw-Hill.
+
+Sparck Jones, K. and Van Rijsbergen, C. (1975). Report
+on the Need for and Provision of an `Ideal" Information
+Retrieval Test Collection, British Library Research and
+Development Report 5266, Computer Laboratory, Uni-
+versity of Cambridge. 1993.
+
+
+                                             20
+

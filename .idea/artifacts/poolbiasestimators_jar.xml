@@ -1,0 +1,12 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="poolbiasestimators:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/poolbiasestimators_jar</output-path>
+    <root id="archive" name="poolbiasestimators.jar">
+      <element id="module-output" name="poolbiasestimators" />
+      <element id="extracted-dir" path="$USER_HOME$/.ivy2/cache/org.scala-lang.modules/scala-xml_2.11/bundles/scala-xml_2.11-1.0.2.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$USER_HOME$/.ivy2/cache/org.apache.commons/commons-math3/jars/commons-math3-3.3.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$USER_HOME$/.ivy2/cache/org.scala-lang/scala-library/jars/scala-library-2.11.4.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$USER_HOME$/.ivy2/cache/com.github.scopt/scopt_2.11/jars/scopt_2.11-3.3.0.jar" path-in-jar="/" />
+    </root>
+  </artifact>
+</component>

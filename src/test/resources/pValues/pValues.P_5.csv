@@ -1,0 +1,5 @@
+input.A,input.B,0.01
+input.B,input.C,1
+input.C,input.A,0.00036
+input.D,input.E,0.049
+input.B,input.C,1
