@@ -198,7 +198,7 @@ To avoid their effect, as it has been done in the literature, it is possible to 
 
 ### The pValues files (-p /path/to/the/folder)
 The pValues files are used by the measures of errors and correlation marked by a star. For each IR measure is required a separated file that has the following name pattern: "pValues.[Metric].csv". All the values greater then 
-0.05 are considered non statistically significance. The format of the files is a list of coma separated values (CSV) as shown in the following example:
+0.05 are considered non statistically significant. The format of the files is a list of coma separated values (CSV) as shown in the following example:
 ```csv
 input.ARCJ5,input.ARCJ0,0.58162
 input.JuruFull,input.ARCJ0,0.00441
