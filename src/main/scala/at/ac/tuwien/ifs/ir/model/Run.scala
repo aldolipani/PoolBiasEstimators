@@ -1,11 +1,11 @@
-package at.ac.tuwien.ir.model
+package at.ac.tuwien.ifs.ir.model
 
 /**
  * Created by aldo on 10/10/14.
  */
 class Run(val id: Int, val runRecords: List[RunRecord]) {
   lazy val runRecordsMapByDocumentID = {
-    val runRecordsMapByDocumentID = runRecords.map(rR => (rR.document.id -> rR)).toMap
+    val runRecordsMapByDocumentID = runRecords.map(rR => rR.document.id -> rR).toMap
     //if(runRecords.size != runRecordsMapByDocumentID.size)
     //  throw new Exception(runRecords.size + " " + runRecordsMapByDocumentID.size)
     runRecordsMapByDocumentID
@@ -42,7 +42,7 @@ object Run {
 
   def fromListOfItems(list: List[Array[String]]): Run = {
     val id = runIDToInt(list.head.head)
-    val nList = normalizeRawRank(list.filterNot(_.size == 4))
+    val nList = normalizeRawRank(list.filterNot(_.length == 4))
     val uList = filterDuplicateDocuments(nList)
     val nuList = normalizeRawRank(uList)
     val rRs = nuList.groupBy(_.head).values.head.map(rRIs =>
@@ -50,7 +50,7 @@ object Run {
         RunRecord.fromItems(rRIs.tail)
       } catch {
         case e: Exception => {
-          println(nList.map(_.mkString(" ")).mkString("\n"));
+          println(nList.map(_.mkString(" ")).mkString("\n"))
           throw e
         }
       })
@@ -60,7 +60,7 @@ object Run {
   def normalizeRawRank(list: List[Array[String]]): List[Array[String]] = {
     val sList = list.sortBy(e => e(2)).reverse.sortBy(e => -e(4).toFloat)
     (1 to sList.size).foldRight(sList)((i, sList) => {
-      sList(i - 1).update(3, i.toString);
+      sList(i - 1).update(3, i.toString)
       sList
     })
   }
@@ -68,7 +68,7 @@ object Run {
   def normalizeRank(runRecords: List[RunRecord]): List[RunRecord] = {
     val sList = runRecords.sortBy(_.document.id).reverse.sortBy(-_.score)
     (1 to sList.size).foldRight(sList)((i, sList) => {
-      sList.take(i - 1) ::: (new RunRecord(sList(i - 1).iteration, sList(i - 1).document, i, sList(i - 1).score)) :: sList.drop(i)
+      sList.take(i - 1) ::: new RunRecord(sList(i - 1).iteration, sList(i - 1).document, i, sList(i - 1).score) :: sList.drop(i)
     })
   }
 }

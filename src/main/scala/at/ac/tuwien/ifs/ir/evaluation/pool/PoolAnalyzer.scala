@@ -1,13 +1,14 @@
-package at.ac.tuwien.ir.evaluation
+package at.ac.tuwien.ifs.ir.evaluation.pool
 
-import at.ac.tuwien.ir.model._
+import at.ac.tuwien.ifs.ir.model._
 
 /**
  * Created by aldo on 10/10/14.
  */
-class PoolAnalyser(lRuns: List[Runs], qRels: QRels) {
+class PoolAnalyzer(lRuns: List[Runs], qRels: QRels) {
 
   lazy val d: Int = computePoolDepth
+  lazy val pooledRuns = getPooledRuns
 
   private def computePoolDepth() = {
     val qRel = qRels.qRels.head
@@ -38,20 +39,15 @@ class PoolAnalyser(lRuns: List[Runs], qRels: QRels) {
     getApproximateSize(run.runRecords.sortBy(_.rank), 0, an)
   }
 
-  private def mode[A](l: Seq[A]) = l.groupBy(i => i).mapValues(_.size).maxBy(_._2)._1
+  private def getPooledRuns: List[Runs] = getShallowPooledRuns
 
-  lazy val pooledRuns = getPooledRuns
-
-  private def getPooledRuns(): List[Runs] = getShallowPooledRuns()
-
-  private def getShallowPooledRuns(): List[Runs] = {
-
+  private def getShallowPooledRuns: List[Runs] = {
     def getPooledRuns(lRuns: List[Runs], pooledRuns: List[Runs]): List[Runs] = {
       if (lRuns.isEmpty)
         pooledRuns
       else {
         val sRuns = lRuns.head
-        if ((sRuns.topicIds.intersect(qRels.topicIds)).forall(tId => {
+        if (sRuns.topicIds.intersect(qRels.topicIds).forall(tId => {
           var run = sRuns.selectByTopicId(tId)
           val aSize = getApproximateSize(run, qRels.topicQRels.get(tId).get, (d.toDouble / 10).toInt)
           run == null || aSize >= d || run.runRecords.size < aSize + d / 10
@@ -65,6 +61,7 @@ class PoolAnalyser(lRuns: List[Runs], qRels: QRels) {
     getPooledRuns(lRuns, Nil)
   }
 
+  @deprecated
   def repoolWith(lRuns: List[Runs]): QRels = {
     val nQRels =
       for (qRel <- qRels.qRels.par if (lRuns.head.selectByTopicId(qRel.id) != null)) yield {
@@ -80,4 +77,16 @@ class PoolAnalyser(lRuns: List[Runs], qRels: QRels) {
 
     new QRels(qRels.id, nQRels.seq)
   }
+
+
+  def getPool():Pool = {
+    if(d > 0)
+      new DepthNPool(d, lRuns, qRels)
+    else
+      null
+  }
+
+  private def mode[A](l: Seq[A]) = l.groupBy(i => i).mapValues(_.size).maxBy(_._2)._1
+
 }
+

@@ -1,5 +1,5 @@
-import at.ac.tuwien.ir.model.{Runs, RunRecord, Run}
-import at.ac.tuwien.ir.model.Runs
+import at.ac.tuwien.ifs.ir.model.{Runs, RunRecord, Run}
+import at.ac.tuwien.ifs.ir.model.Runs
 import org.scalatest._
 
 class TestModel extends FlatSpec with Matchers {

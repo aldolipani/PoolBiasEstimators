@@ -1,4 +1,4 @@
-package at.ac.tuwien.ir.model
+package at.ac.tuwien.ifs.ir.model
 
 /**
  * Created by aldo on 24/11/14.

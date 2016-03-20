@@ -1,10 +1,10 @@
-package at.ac.tuwien.ir.evaluation
+package at.ac.tuwien.ifs.ir.evaluation
 
 import java.io.File
 import java.nio.file.{Files, Paths}
 
-import at.ac.tuwien.io.TXTFile
-import at.ac.tuwien.ir.model._
+import at.ac.tuwien.ifs.io.TXTFile
+import at.ac.tuwien.ifs.ir.model._
 
 import scala.sys.process._
 import scala.util.Random
@@ -17,22 +17,37 @@ class TRECEval(tempDir: String = ".") {
   val temp: String = TRECEval.makeDir(tempDir)
   //TRECEval.clearFolder(temp)
 
-  def avg(vs: Seq[Double]): Double = {
+  def avgInt(vs: Seq[Int]): Double =
+    vs.sum.toDouble / vs.size
+
+  def avg(vs: Seq[Double]): Double =
     vs.sum / vs.size
-  }
 
   def round(num: Double) = Math.round(num * 10000).toDouble / 10000
 
-  def p(n: Int, run: Run, qRel: QRel): Double = {
-    run.runRecords.map(rR => {
-      /*println(rR.document.id,qRel.getRel(rR.document.id));*/ if (qRel.getRel(rR.document.id) > 0) 1 else 0
-    }).sum.toDouble / n
-  }
+  def num_ret_rel(run:Run, qRel: QRel):Int =
+    run.runRecords.map(rR => if (qRel.getRel(rR.document.id) > 0) 1 else 0).sum
 
-  def p_n(n: Int, runs: Runs, qRels: QRels): Double = round(avg(
+  def num_ret_rels(runs:Runs, qRels: QRels):List[Int] =
+    runs.runs.withFilter(_ != null).map(run =>
+      num_ret_rel(run, qRels.topicQRels.getOrElse(run.id, new QRel(run.id, Nil))))
+
+  def p(n: Int, run: Run, qRel: QRel): Double =
+    num_ret_rel(run, qRel).toDouble / n
+
+/*  def p_n(n: Int, runs: Runs, qRels: QRels): Double = round(avg(
     runs.runs.filter(_ != null).map(run =>
       p(n, new Run(run.id, run.runRecords.filterNot(_.rank > n)),
         qRels.topicQRels.getOrElse(run.id, new QRel(run.id, Nil))))))
+*/
+
+  def cut(n:Int, runs:Runs):Runs =
+    new Runs(runs.id, runs.runs.withFilter(_ != null).map(run => new Run(run.id, run.runRecords.take(n))))
+
+  def p_n(n:Int, runs:Runs, qRels:QRels): Double =
+    round(avgInt(
+      num_ret_rels(cut(n, runs), qRels)
+    )) / n
 
   def computeMetric(metric: String, runs: Runs, qRels: QRels): Double = {
     if (metric.startsWith("P_")) {

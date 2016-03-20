@@ -1,12 +1,14 @@
-package at.ac.tuwien.ifs.poolbias.estimators
+package at.ac.tuwien.ifs.ir.evaluation.poolbias.estimators
 
-import at.ac.tuwien.ir.model._
+import at.ac.tuwien.ifs.ir.model._
 ;
 
 class LipaniEstimator(qRels: QRels, Rp: List[Runs], metric: String, descs: Descs = null) extends ScoreEstimator(qRels, Rp, metric, descs) {
 
   implicit def shufflableRuns(runs: Runs) = new {
-    def ◦(sRuns: Runs, N: Int = 0): Runs = getNewRunBySelectedRuns(runs, sRuns, N)
+    def ◦(sRuns: Runs, N: Int = 0): Runs = {
+      getNewRunBySelectedRuns(runs, sRuns, N)
+    }
   }
 
   override def getScore(ru: Runs): Score = {
@@ -32,9 +34,9 @@ class LipaniEstimator(qRels: QRels, Rp: List[Runs], metric: String, descs: Descs
     new Score(ru.id, sru + a)
   }
 
-  private def getNewRunBySelectedRuns(runs: Runs, sRuns: Runs, N: Int = 0): Runs = {
-    new Runs("s." + runs.id,
-      for (id <- sRuns.topicIds.toList) yield {
+  def getNewRunBySelectedRuns(runs: Runs, sRuns: Runs, N: Int = 0): Runs = {
+    new Runs(runs.id + "_" + sRuns.id+".N_"+N,
+      (for (id <- sRuns.topicIds.toList) yield {
         val run = runs.selectByTopicId(id)
         if (run != null) {
           val sRun = sRuns.selectByTopicId(id)
@@ -49,7 +51,7 @@ class LipaniEstimator(qRels: QRels, Rp: List[Runs], metric: String, descs: Descs
               })))
         } else
           null
-      })
+      }).filter(_!=null))
   }
 
   private def getNewScore(sRun: Run, runRecord: RunRecord, N: Int): Float = (sRun.runRecords.size + 1) - {

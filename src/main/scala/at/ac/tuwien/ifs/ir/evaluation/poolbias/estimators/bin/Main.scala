@@ -1,12 +1,11 @@
-package at.ac.tuwien.ifs.poolbias.estimators.bin
+package at.ac.tuwien.ifs.ir.evaluation.poolbias.estimators.bin
 
 import java.io.File
 
-import at.ac.tuwien.ifs.poolbias.estimators.Analysis
-import at.ac.tuwien.ifs.poolbias.estimators.Analysis.L1xo
-import at.ac.tuwien.ifs.poolbias.estimators.Analysis.L1xo.L1xo
-import at.ac.tuwien.ifs.poolbias.estimators.Analysis.{L1xo, PrintOut}
-import at.ac.tuwien.ifs.poolbias.estimators.Analysis.PrintOut.PrintOut
+import at.ac.tuwien.ifs.ir.evaluation.poolbias.estimators.Analysis
+import at.ac.tuwien.ifs.ir.evaluation.poolbias.estimators.Analysis.L1xo.L1xo
+import at.ac.tuwien.ifs.ir.evaluation.poolbias.estimators.Analysis.PrintOut.PrintOut
+import at.ac.tuwien.ifs.ir.evaluation.poolbias.estimators.Analysis.{L1xo, PrintOut}
 
 /**
  * Created by aldo on 14/02/15.
@@ -20,11 +19,12 @@ object Main extends App {
                     pValuesDir: File = null,
                     printOut: PrintOut = PrintOut.all,
                     l1xo: L1xo = L1xo.both,
+                    toPool:String = "",
                     top75Runs: Boolean = false)
 
   override def main(args: Array[String]){
     val parser = new scopt.OptionParser[Config]("pool_bias_estimators") {
-      head("pool_bias_estimators", "1.0")
+      head("pool_bias_estimators", "2.0")
       opt[Unit]('r', "leaveOneRunOut") action { (x, c) =>
         c.copy(l1xo = L1xo.run)
       } text ("active the leave-one-run-out, only in analysis mode")
@@ -37,6 +37,9 @@ object Main extends App {
       opt[Unit]('b', "onlyPoolBiasReport") action { (x, c) =>
         c.copy(printOut = PrintOut.onlyErrors)
       } text ("print only the pool bias report, only in analysis mode")
+      opt[String]("toPoolingStrategy") optional() action { (x, c) =>
+        c.copy(toPool = x.toLowerCase)
+      } text ("create a syntetic pool from Depth@d pooling strategy to another pooling strategy, available pooling strategies are: Depth_d, SampledDepth_d:r and Stratified{_d:r}+")
       opt[Unit]('t', "top75Runs") action { (x, c) =>
         c.copy(top75Runs = true)
       } text ("use only the top 75% of pooled runs per metric")
@@ -66,9 +69,9 @@ object Main extends App {
           else if (config.printOut == PrintOut.onlyRuns)
             Analysis.computeOnlyRuns(config.trecRelFile, config.trecRunsDir, config.descRunsFile, config.pValuesDir, config.l1xo, config.top75Runs)
           else
-            Analysis.computeAll(config.trecRelFile, config.trecRunsDir, config.descRunsFile, config.pValuesDir)
+            Analysis.computeAll(config.trecRelFile, config.trecRunsDir, config.descRunsFile, config.pValuesDir, config.l1xo, config.top75Runs, config.toPool)
         }else{
-          Analysis.computeEstimatesAll(config.trecRelFile, config.trecRunsDir, config.trecRunsFile, config.descRunsFile, config.pValuesDir)
+          Analysis.computeEstimatesAll(config.trecRelFile, config.trecRunsDir, config.trecRunsFile, config.descRunsFile, config.pValuesDir, config.toPool)
         }
       }
       case None =>

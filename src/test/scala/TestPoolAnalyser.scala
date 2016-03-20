@@ -1,5 +1,5 @@
-import at.ac.tuwien.ir.evaluation.PoolAnalyser
-import at.ac.tuwien.ir.model.{QRels, Run, RunRecord, Runs}
+import at.ac.tuwien.ifs.ir.evaluation.pool.PoolAnalyzer
+import at.ac.tuwien.ifs.ir.model.{QRels, Run, RunRecord, Runs}
 import org.scalatest.{FlatSpec, Matchers}
 
 class TestPoolAnalyser extends FlatSpec with Matchers {
@@ -87,7 +87,7 @@ class TestPoolAnalyser extends FlatSpec with Matchers {
     val runs = List(runs1, runs2, runs3)
     val qRels = QRels.fromListOfItems("Test", qRelsInput)
 
-    val poolAnalyser = new PoolAnalyser(runs, qRels)
+    val poolAnalyser = new PoolAnalyzer(runs, qRels)
 
     poolAnalyser.d should be (3)
   }
@@ -99,7 +99,7 @@ class TestPoolAnalyser extends FlatSpec with Matchers {
     val runs = List(runs1, runs2, runs3)
     val qRels = QRels.fromListOfItems("Test", qRelsInput)
 
-    val poolAnalyser = new PoolAnalyser(runs, qRels)
+    val poolAnalyser = new PoolAnalyzer(runs, qRels)
 
     poolAnalyser.pooledRuns.size should be (2)
   }
@@ -111,7 +111,7 @@ class TestPoolAnalyser extends FlatSpec with Matchers {
     val runs = List(runs1, runs2, runs3)
     val qRels = QRels.fromListOfItems("Test", qRelsInput)
 
-    val poolAnalyser = new PoolAnalyser(runs, qRels)
+    val poolAnalyser = new PoolAnalyzer(runs, qRels)
 
     poolAnalyser.repoolWith(List(runs2)).size should be (6)
     poolAnalyser.repoolWith(List(runs3)).size should be (1)

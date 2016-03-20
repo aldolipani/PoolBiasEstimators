@@ -1,11 +1,11 @@
-package at.ac.tuwien.ifs.poolbias.estimators
+package at.ac.tuwien.ifs.ir.evaluation.poolbias.estimators
 
 import java.io.File
 
-import at.ac.tuwien.ifs.poolbias.estimators.Analysis.PrintOut.PrintOut
-import at.ac.tuwien.io.TXTFile
-import at.ac.tuwien.ir.evaluation.{PoolAnalyser, TRECEval}
-import at.ac.tuwien.ir.model.{Descs, QRels, Runs}
+import at.ac.tuwien.ifs.io.TXTFile
+import at.ac.tuwien.ifs.ir.evaluation.TRECEval
+import at.ac.tuwien.ifs.ir.evaluation.pool.{DepthNPool, Pool, PoolAnalyzer, PoolConverter}
+import at.ac.tuwien.ifs.ir.model.{Descs, QRels, Runs}
 
 
 /**
@@ -44,7 +44,7 @@ object Analysis {
     println("")
   }
 
-  private def printPoolProperties(poolAnalyser: PoolAnalyser) = {
+  @deprecated private def printPoolProperties(poolAnalyser: PoolAnalyzer) = {
     def printPoolProperty(name:String, value:String) = System.out.format("%-15s\t%s\n", name, value)
     println("Pool Properties")
     printPoolProperty("depth_of_pool", poolAnalyser.d.toString)
@@ -52,45 +52,70 @@ object Analysis {
     println("")
   }
 
-  private def printParameters(trecRelFile: File, trecRunsDir:File, descRunsFile:File, pValuesDir:File): Unit ={
+  private def printPoolProperties(pool: Pool) = {
+    def printPoolProperty(name:String, value:String) = System.out.format("%-15s\t%s\n", name, value)
+    val poolAnalyser = getPoolAnalyser(pool)
+    println("Pool Properties")
+    printPoolProperty("depth_of_pool", poolAnalyser.d.toString)
+    printPoolProperty("num_pooled_runs", poolAnalyser.pooledRuns.size.toString)
+    printPoolProperty("num_judjed_docs", pool.qRels.size.toString)
+    printPoolProperty("num_judjed_rel_docs", pool.qRels.sizeRel.toString)
+    println("")
+  }
+
+  private def printNewPoolProperties(pool: Pool) = {
+    print("New "); printPoolProperties(pool)
+  }
+
+  private def printParameters(trecRelFile: File, trecRunsDir:File, descRunsFile:File, pValuesDir:File, toPool:String): Unit ={
     def printParameter(name:String, value:String) = System.out.format("%-15s\t%s\n", name, value)
     println("List Parameters")
     printParameter("trec_rel_file", trecRelFile.getAbsolutePath)
     printParameter("trec_runs_dir", trecRunsDir.getAbsolutePath)
     if (descRunsFile != null) printParameter("desc_runs_file", descRunsFile.getAbsolutePath)
     if (pValuesDir != null) printParameter("p_values_dir", pValuesDir.getAbsolutePath)
+    if (toPool != "") printParameter("toPool", toPool)
     println("")
   }
 
-  private def printParameters(trecRelFile: File, trecRunsDir:File, trecRunsFile:File): Unit ={
+  private def printParameters(trecRelFile: File, trecRunsDir:File, trecRunsFile:File, toPool:String): Unit ={
     def printParameter(name:String, value:String) = System.out.format("%-10s\t%s\n", name, value)
     println("List Parameters")
     printParameter("trec_rel_file", trecRelFile.getAbsolutePath)
     printParameter("trec_runs_dir", trecRunsDir.getAbsolutePath)
     if (trecRunsFile != null) printParameter("trec_runs_file", trecRunsFile.getAbsolutePath)
+    if (toPool != "") printParameter("toPool", toPool)
     println("")
   }
 
-  def computeAll(trecRelFile: File, trecRunsDir: File, descRunsFile: File, pValuesDir: File) {
-    printParameters(trecRelFile, trecRunsDir, descRunsFile, pValuesDir)
+  def computeAll(trecRelFile: File, trecRunsDir: File, descRunsFile: File, pValuesDir: File, l1xo: L1xo, top75Runs: Boolean, toPool:String) {
+    printParameters(trecRelFile, trecRunsDir, descRunsFile, pValuesDir, toPool)
 
     val lRuns = getListRuns(trecRunsDir)
     val qRels = getQRels(trecRelFile)
     val descs = if (descRunsFile != null) Descs.fromXMLDesc(descRunsFile) else null
     printTestCollectionProperties(lRuns, qRels, descs)
 
-    val poolAnalyser = getPoolAnalyser(qRels, lRuns)
-    printPoolProperties(poolAnalyser)
+    val pool = new Pool(lRuns, qRels)
+    val poolAnalyser = getPoolAnalyser(pool)
+    val depthNPool = new DepthNPool(poolAnalyser.d, pool.lRuns, pool.qRels)
+    val poolPooledRuns = PoolConverter.repoolWith(poolAnalyser.pooledRuns, depthNPool)
+    printPoolProperties(poolPooledRuns)
 
-    val pQRels = poolAnalyser.repoolWith(poolAnalyser.pooledRuns)
+    val nPool = getNewPool(toPool, poolPooledRuns)
+    if(toPool!="")
+      printNewPoolProperties(nPool)
+
     for (metric <- metrics){
-      computeRuns(pQRels, poolAnalyser.pooledRuns, descs, metric, pValuesDir, L1xo.both, PrintOut.all)
-      compute75TopRuns(pQRels, poolAnalyser.pooledRuns, descs, metric, pValuesDir, L1xo.both, PrintOut.all)
+      if(!top75Runs)
+        computeRuns(nPool.qRels, nPool.lRuns, descs, metric, pValuesDir, l1xo, PrintOut.all)
+      else
+        compute75TopRuns(nPool.qRels, nPool.lRuns, descs, metric, pValuesDir, l1xo, PrintOut.all)
     }
   }
 
-  def computeEstimatesAll(trecRelFile: File, trecRunsDir: File, trecRunFile:File, descRunsFile: File, pValuesDir: File) {
-    printParameters(trecRelFile, trecRunsDir, trecRunFile)
+  def computeEstimatesAll(trecRelFile: File, trecRunsDir: File, trecRunFile:File, descRunsFile: File, pValuesDir: File, toPool:String) {
+    printParameters(trecRelFile, trecRunsDir, trecRunFile, toPool)
 
     val lRuns = getListRuns(trecRunsDir)
     val runs = getRuns(trecRunFile)
@@ -99,18 +124,24 @@ object Analysis {
     val descs = if (descRunsFile != null) Descs.fromXMLDesc(descRunsFile) else null
     printTestCollectionProperties(lRuns, qRels, descs)
 
-    val poolAnalyser = getPoolAnalyser(qRels, lRuns)
-    printPoolProperties(poolAnalyser)
+    val pool = new Pool(lRuns, qRels)
+    printPoolProperties(pool)
 
-    val pQRels = poolAnalyser.repoolWith(poolAnalyser.pooledRuns)
+    val poolAnalyser = getPoolAnalyser(pool)
+    val poolPooledRuns = PoolConverter.repoolWith(poolAnalyser.pooledRuns, pool)
+
+    val nPool = getNewPool(toPool, poolPooledRuns)
+    if(toPool!="")
+      printPoolProperties(nPool)
+
     for (metric <- metrics){
-      computeEstimatesForRuns(pQRels, poolAnalyser.pooledRuns, runs, metric, pValuesDir)
-      computeEstimatesFor75TopRuns(pQRels, poolAnalyser.pooledRuns, runs, metric, pValuesDir)
+      computeEstimatesForRuns(nPool.qRels, nPool.lRuns, runs, metric, pValuesDir)
+      computeEstimatesFor75TopRuns(nPool.qRels, nPool.lRuns, runs, metric, pValuesDir)
     }
   }
 
   def computeOnlyErrors(trecRelFile: File, trecRunsDir: File, descRunsFile: File, pValuesDir: File, l1xo: L1xo, top75Runs: Boolean = false) = {
-    printParameters(trecRelFile, trecRunsDir, descRunsFile, pValuesDir)
+    printParameters(trecRelFile, trecRunsDir, descRunsFile, pValuesDir, "")
 
     val lRuns = getListRuns(trecRunsDir)
     val qRels = getQRels(trecRelFile)
@@ -130,7 +161,7 @@ object Analysis {
   }
 
   def computeOnlyRuns(trecRelFile: File, trecRunsDir: File, descRunsFile: File, pValuesDir: File, l1xo: L1xo, top75Runs: Boolean = false) = {
-    printParameters(trecRelFile, trecRunsDir, descRunsFile, pValuesDir)
+    printParameters(trecRelFile, trecRunsDir, descRunsFile, pValuesDir, "")
 
     val lRuns = getListRuns(trecRunsDir)
     val qRels = getQRels(trecRelFile)
@@ -235,7 +266,9 @@ object Analysis {
 
   private def getQRels(file: File) = QRels.fromLines("test", TXTFile.getLines(file))
 
-  private def getPoolAnalyser(qRels: QRels, runs: List[Runs]): PoolAnalyser = new PoolAnalyser(runs, qRels)
+  @deprecated private def getPoolAnalyser(qRels: QRels, runs: List[Runs]): PoolAnalyzer = new PoolAnalyzer(runs, qRels)
+
+  private def getPoolAnalyser(pool:Pool): PoolAnalyzer = new PoolAnalyzer(pool.lRuns, pool.qRels)
 
   private def getListRuns(path: String): List[Runs] = getListRuns(new File(path))
 
@@ -245,12 +278,19 @@ object Analysis {
   }
 
   private def getRuns(path: File): Runs =
-    Runs.fromLines(TXTFile.getLines(path.getCanonicalPath))
+    Runs.fromLines(TXTFile.getLines(path.getCanonicalPath), path.getName.replaceAllLiterally("input.",""))
 
   private def getListRuns(path: String, n: Int): List[Runs] = {
     val lF = new File(path).listFiles.take(n)
     lF.filter(f => f.getName.endsWith(".gz")).map(f => {
-      Runs.fromLines(TXTFile.getLines(f.getCanonicalPath))
+      Runs.fromLines(TXTFile.getLines(f.getCanonicalPath), f.getName.replaceAllLiterally("input.",""))
     }).toList
   }
+
+  private def getNewPool(toPool:String, pool:Pool) =
+    if(toPool != "")
+      PoolConverter.to(toPool, pool)
+    else
+      pool
+
 }

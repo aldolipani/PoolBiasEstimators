@@ -1,4 +1,4 @@
-package at.ac.tuwien.ir.model
+package at.ac.tuwien.ifs.ir.model
 
 import java.io.File
 
@@ -8,18 +8,18 @@ import scala.io.Source
  * Created by aldo on 10/10/14.
  */
 class QRels(val id: String, val qRels: Seq[QRel]) {
-  lazy val topicQRels = qRels.map(qRel => (qRel.id -> qRel)).toMap
+  lazy val topicQRels = qRels.map(qRel => qRel.id -> qRel).toMap
   lazy val topicIds = qRels.map(qRel => qRel.id).toSet
+
+  lazy val sizeTopics = topicIds.size
+  lazy val size: Int = qRels.map(_.qrelRecord.size).sum
+  lazy val sizeRel: Int = qRels.map(_.qrelRecord.count(_.rel>0)).sum
 
   override def toString: String = qRels.mkString("\n")
 
-  def sizeTopics = topicIds.size
-
-  def size: Int = qRels.map(_.qrelRecord.size).sum
-
   def getRel(idTopic: Int, idDocument: String) = topicQRels(idTopic).getRel(idDocument)
 
-  def inverse = new QRels("inv" + id, {
+  lazy val inverse = new QRels("inv" + id, {
     qRels.map(qR => {
       new QRel(
         qR.id,
@@ -42,7 +42,7 @@ object QRels {
     fromListOfItems(id, iterator.map(_.trim.split("\\s+")).filter(_.size == 4).toList)
 
   def fromListOfItems(id: String, list: List[Array[String]]): QRels = {
-    val runs = list.groupBy(_.head).values.map(QRel.fromListOfItems(_))
+    val runs = list.groupBy(_.head).values.map(QRel.fromListOfItems)
     new QRels(id, runs.toList)
   }
 

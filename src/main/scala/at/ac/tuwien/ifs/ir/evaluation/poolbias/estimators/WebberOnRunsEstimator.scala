@@ -1,7 +1,7 @@
-package at.ac.tuwien.ifs.poolbias.estimators
+package at.ac.tuwien.ifs.ir.evaluation.poolbias.estimators
 
-import at.ac.tuwien.ir.evaluation.PoolAnalyser
-import at.ac.tuwien.ir.model.{Descs, QRels, Runs, Score}
+import at.ac.tuwien.ifs.ir.evaluation.pool.PoolAnalyzer
+import at.ac.tuwien.ifs.ir.model.{Descs, QRels, Runs, Score}
 
 /**
  * Created by aldo on 02/05/15.
@@ -11,7 +11,7 @@ class WebberOnRunsEstimator(qRels: QRels, Rp: List[Runs], metric: String, descs:
 
   override def getScore(ru: Runs): Score = {
     val sru = M(ru)
-    val poolAnalyser = new PoolAnalyser(Rp, qRels)
+    val poolAnalyser = new PoolAnalyzer(Rp, qRels)
     val as = Rp.par.map(nRun => {
       val nRp = Rp.filterNot(_.id == nRun.id)
       val nQRels = poolAnalyser.repoolWith(nRp)

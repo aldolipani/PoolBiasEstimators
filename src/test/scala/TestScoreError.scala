@@ -1,8 +1,8 @@
 import java.io.File
 
-import at.ac.tuwien.ifs.poolbias.estimators.ScoresError
-import at.ac.tuwien.ir.evaluation.TRECEval
-import at.ac.tuwien.ir.model.{Score, QRels, Runs}
+import at.ac.tuwien.ifs.ir.evaluation.poolbias.estimators.ScoresError
+import at.ac.tuwien.ifs.ir.evaluation.TRECEval
+import at.ac.tuwien.ifs.ir.model.{Score, QRels, Runs}
 import org.scalatest.{FlatSpec, Matchers}
 
 import scala.io.Source
@@ -23,7 +23,7 @@ class TestScoresError extends FlatSpec with Matchers {
     val sE = new ScoresError(trueScores, new File(getClass.getResource("pValues").getPath),"P_5")
 
     val newScores = trueScores.map(s => new Score(s.runId, s.score + 0.01d))
-    round(sE.meanAbsoluteError(newScores)) should be(0.01d)
+    round(sE.meanAbsoluteError(newScores)._1) should be(0.01d)
   }
 
   "ScoreError" should " return the right SRE" in {

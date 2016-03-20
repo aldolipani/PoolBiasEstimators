@@ -1,8 +1,8 @@
 # PoolBiasEstimators
 With Pool bias in Information Retrieval (IR) is meant the bias of a test collection against new systems that appears as side-effect of the use of the pooling technique.
-In this repository we find the implementation of the pool bias estimators analyzed by Lipani et al. [1]. 
-The developed estimators are: the true estimator (TrueEstimator or TE), the estimator based on the pool (PoolEstimator or PE), the estimator based on runs developed by Webber and Park (WebberOnRunsEstimator or WORE) [2], and the estimator 
-developed by Lipani et al. (LipaniEstimator or LE) [1].
+In this repository we find the implementation of the pool bias estimators analyzed by Lipani et al. [1,2]. 
+The developed estimators are: the true estimator (TrueEstimator or TE), the estimator based on the pool (PoolEstimator or PE), the estimator based on runs developed by Webber and Park (WebberOnRunsEstimator or WORE) [3], and the estimator 
+developed by Lipani et al. (LipaniEstimator or LE) [1,2].
 The TrueEstimator computes, when possible, the score of the selected run when pooled, useful to compare the true score with the estimated ones; the PoolEstimator computes the score of a run as it was not present during the construction of the pool, useful to measure the bias of the test collection and as baseline when comparing the performance of the other estimators. The details about the other estimators can be found in the respective referenced papers.
 
 The application has two use cases, **analysis** of the test collection and run bias **correction**.
@@ -18,7 +18,7 @@ Following the help message of the application:
 ```sh
 $ java -jar poolbiasestimators.jar --help
 
-pool_bias_estimators 1.0
+pool_bias_estimators 2.0
 Usage: pool_bias_estimators [options] <trec_rel_file> <trec_runs_dir> [<trec_run_file>]
 
   -r | --leaveOneRunOut
@@ -29,6 +29,8 @@ Usage: pool_bias_estimators [options] <trec_rel_file> <trec_runs_dir> [<trec_run
         print only the run scores report, only in analysis mode
   -b | --onlyPoolBiasReport
         print only the pool bias report, only in analysis mode
+  --toPoolingStrategy <value>
+        create a syntetic pool from Depth@d pooling strategy to another pooling strategy, available pooling strategies are: Depth_d, SampledDepth_d:r and Stratified{_d:r}+
   -t | --top75Runs
         use only the top 75% of pooled runs per metric
   -p <value> | --pValues <value>
@@ -206,8 +208,14 @@ input.JuruFullQE,input.ARCJ0,0.00244
 [...]
 ```
 
+### Transform a Depth@d pooling strategy to another (-toPoolingStrategy <value>)
+To analyze a test collection or a run assuming a different pooling strategy than the one used to build the test collection, it is possible to create a synthetic pool, from a pool constructed with a Depth@d pooling strategy, with one of the following pooling strategies: Depth@d, SampledDepth@d&r and Stratified.
+
+
 ## Bibliography
 
-[1] Splitting Water: Precision and Anti-Precision to Reduce Pool Bias
+[1] Lipani, Aldo, Mihai Lupu, and Allan Hanbury. "Splitting Water: Precision and Anti-Precision to Reduce Pool Bias." Proceedings of the 38th International ACM SIGIR Conference on Research and Development in Information Retrieval. ACM, 2015. DOI=10.1145/2766462.2767749 http://doi.acm.org/10.1145/2766462.2767749
 
-[2] William Webber and Laurence A. F. Park. 2009. Score adjustment for correction of pooling bias. In Proceedings of the 32nd international ACM SIGIR conference on Research and development in information retrieval (SIGIR '09). ACM, New York, NY, USA, 444-451. DOI=10.1145/1571941.1572018 http://doi.acm.org/10.1145/1571941.1572018
+[2] The Curious Incidence of Bias Corrections in the Pool
+
+[3] Webber, William, and Laurence AF Park. "Score adjustment for correction of pooling bias." Proceedings of the 32nd international ACM SIGIR conference on Research and development in information retrieval. ACM, 2009. DOI=10.1145/1571941.1572018 http://doi.acm.org/10.1145/1571941.1572018

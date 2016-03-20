@@ -1,8 +1,8 @@
 import java.io.File
 
-import at.ac.tuwien.ir.evaluation
-import at.ac.tuwien.ir.evaluation.{TRECEval, PoolAnalyser}
-import at.ac.tuwien.ir.model.{Run, QRels, Runs}
+import at.ac.tuwien.ifs.ir.evaluation
+import at.ac.tuwien.ifs.ir.evaluation.TRECEval
+import at.ac.tuwien.ifs.ir.model.{Run, QRels, Runs}
 import org.scalatest.{FlatSpec, Matchers}
 
 import scala.io.Source
@@ -17,6 +17,7 @@ class TestTRECEval extends FlatSpec with Matchers {
 
     new File(getClass.getResource("/TREC-2/Adhoc/Runs").getPath).listFiles.filter(f => f.isFile).map { f =>
       val runs = Runs.fromFile(f)
+      println(runs.id)
       trecEval.computeP5(runs, qRels) should be(trecEval.computeUnsupportedMetric("P_5", runs, qRels))
       trecEval.computeP10(runs, qRels) should be(trecEval.computeUnsupportedMetric("P_10", runs, qRels))
       trecEval.computeP15(runs, qRels) should be(trecEval.computeUnsupportedMetric("P_15", runs, qRels))

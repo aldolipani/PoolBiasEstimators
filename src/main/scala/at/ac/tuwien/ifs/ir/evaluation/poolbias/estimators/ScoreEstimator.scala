@@ -1,10 +1,10 @@
-package at.ac.tuwien.ifs.poolbias.estimators
+package at.ac.tuwien.ifs.ir.evaluation.poolbias.estimators
 
-import at.ac.tuwien.ifs.poolbias.estimators.Analysis.L1xo
-import at.ac.tuwien.ifs.poolbias.estimators.Analysis.L1xo
-import at.ac.tuwien.ifs.poolbias.estimators.Analysis.L1xo.L1xo
-import at.ac.tuwien.ir.evaluation.{PoolAnalyser, TRECEval}
-import at.ac.tuwien.ir.model._
+import at.ac.tuwien.ifs.ir.evaluation.TRECEval
+import at.ac.tuwien.ifs.ir.evaluation.pool.{DepthNPool, PoolAnalyzer, PoolConverter}
+import at.ac.tuwien.ifs.ir.evaluation.poolbias.estimators.Analysis.L1xo
+import at.ac.tuwien.ifs.ir.evaluation.poolbias.estimators.Analysis.L1xo.L1xo
+import at.ac.tuwien.ifs.ir.model._
 
 /**
  * Created by aldo on 17/02/15.
@@ -27,23 +27,25 @@ abstract class ScoreEstimator(qRels: QRels, lRuns: List[Runs] = Nil, metric: Str
   lazy val scoresL1RO = getAllScoresL1RO()
 
   protected def getAllScoresL1RO(): List[Score] = {
-    val poolAnalyser = new PoolAnalyser(lRuns, qRels)
+    val poolAnalyser = new PoolAnalyzer(lRuns, qRels)
+    val pool = new DepthNPool(poolAnalyser.d, lRuns, qRels)
     lRuns.map(runs => {
       val nlRuns = lRuns.filterNot(_.id == runs.id)
-      val nQRels = poolAnalyser.repoolWith(nlRuns)
+      val nQRels = PoolConverter.repoolWith(nlRuns, pool).qRels
       getScore(runs, nQRels)
     })
   }
 
   protected def getAllScoresL1OO(): List[Score] = {
     val nlRuns = descs.getRunsPerOrganization(lRuns)
-    val poolAnalyser = new PoolAnalyser(nlRuns.flatten, qRels)
+    val poolAnalyser = new PoolAnalyzer(nlRuns.flatten, qRels)
+    val pool = new DepthNPool(poolAnalyser.d, nlRuns.flatten, qRels)
     nlRuns.map(slRuns => {
       val llRuns = ScoreEstimator.excludeRuns(slRuns, nlRuns.flatten)
-      val nQRels = poolAnalyser.repoolWith(llRuns)
-      slRuns.map { runs =>
-        getScore(runs, nQRels)
-      }
+      val nQRels = PoolConverter.repoolWith(llRuns, pool).qRels
+      slRuns.map(runs =>{
+        getScore(runs, nQRels)}
+      )
     }).flatten
   }
 

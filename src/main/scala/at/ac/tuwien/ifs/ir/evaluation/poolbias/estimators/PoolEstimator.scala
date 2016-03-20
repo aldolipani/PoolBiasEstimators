@@ -1,6 +1,6 @@
-package at.ac.tuwien.ifs.poolbias.estimators
+package at.ac.tuwien.ifs.ir.evaluation.poolbias.estimators
 
-import at.ac.tuwien.ir.model.{Descs, QRels, Runs, Score}
+import at.ac.tuwien.ifs.ir.model.{Descs, QRels, Runs, Score}
 
 /**
  * Created by aldo on 02/05/15.

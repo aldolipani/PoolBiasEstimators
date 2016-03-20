@@ -1,11 +1,10 @@
-package at.ac.tuwien.ifs.poolbias.estimators
+package at.ac.tuwien.ifs.ir.evaluation.poolbias.estimators
 
 import java.io.File
 
-import at.ac.tuwien.ifs.poolbias.estimators.Analysis.L1xo
-import at.ac.tuwien.ifs.poolbias.estimators.Analysis.L1xo.L1xo
-import at.ac.tuwien.ifs.poolbias.estimators.Analysis.L1xo.L1xo
-import at.ac.tuwien.ir.model.Score
+import at.ac.tuwien.ifs.ir.evaluation.poolbias.estimators.Analysis.L1xo
+import at.ac.tuwien.ifs.ir.evaluation.poolbias.estimators.Analysis.L1xo.L1xo
+import at.ac.tuwien.ifs.ir.model.Score
 import org.apache.commons.math3.stat.correlation.KendallsCorrelation
 
 import scala.io.Source
@@ -13,15 +12,16 @@ import scala.io.Source
 /**
  * Created by aldo on 15/02/15.
  */
-class ScoresError(trueScores: List[Score], pValuesDir: File, metric: String) {
+class ScoresError(trueScores: List[Score], pValuesDir: File = null, metric: String = null) {
 
   if (trueScores.size != trueScores.map(_.runId).toSet.size) println("Warning: found duplicate runId in trueScores")
 
   lazy val trueScoresMap = trueScores.map(s => (s.runId -> s)).toMap
   lazy val trueScoresWithRankMap = withRank(trueScores).map(sr => (sr._1.runId -> sr)).toMap
 
-  def meanAbsoluteError(testScores: List[Score]): Double = avg {
-    testScores.map(ts => Math.abs(trueScoresMap.get(ts.runId).get.score - ts.score))
+  def meanAbsoluteError(testScores: List[Score]): (Double, Double) = {
+    val xs = testScores.map(ts => Math.abs(trueScoresMap.get(ts.runId).get.score - ts.score))
+    (avg(xs), avgCI(xs))
   }
 
   private def findRank(score: Score, scores: List[Score]): Int = {
@@ -74,7 +74,8 @@ class ScoresError(trueScores: List[Score], pValuesDir: File, metric: String) {
 
     val scores = scoreEstimator.getAllScores(l1xo)
     println(scoreEstimator.getName + ":")
-    printReportError("MAE", ("%1.4f" format round(this.meanAbsoluteError(scores))))
+    val mae = this.meanAbsoluteError(scores)
+    printReportError("MAE", ("%1.4f" format round(mae._1)) + " " +  ("±%1.4f" format round(mae._2)))
     printReportError("SRE", this.systemRankError(scores).toString)
     if (pValuesDir != null) {
       val pValuesFile = new File(pValuesDir, "pValues." + metric + ".csv")
@@ -87,7 +88,9 @@ class ScoresError(trueScores: List[Score], pValuesDir: File, metric: String) {
     println("")
   }
 
-  def avg(x: Seq[Double]) = x.sum / x.size
+  def avg(xs: Seq[Double]) = xs.sum / xs.size
+
+  def avgCI(xs:Seq[Double]) = 1.96d * Math.sqrt((avg(xs.map(x => x*x)) - Math.pow(avg(xs),2)) / xs.size)
 
   def round(num: Double) = Math.round(num * 10000).toDouble / 10000
 
