@@ -5,13 +5,13 @@ import at.ac.tuwien.ifs.ir.model.{Document, QRels, Runs}
 /**
  * Created by aldo on 14/09/15.
  */
-class StratifiedSampledPool(stratas:List[Strata], lRuns: List[Runs], qRels: QRels) extends Pool(lRuns, qRels) {
+class StratifiedPool(stratas:List[Strata], lRuns: List[Runs], qRels: QRels) extends Pool(lRuns, qRels) {
 
-  def getPooledDocuments(topicId: Int): Set[Document] = StratifiedSampledPool.getPooledDocuments(topicId)(stratas, lRuns)
+  def getPooledDocuments(topicId: Int): Set[Document] = StratifiedPool.getPooledDocuments(topicId)(stratas, lRuns)
 
 }
 
-object StratifiedSampledPool{
+object StratifiedPool{
 
   val rnd = new scala.util.Random(1234)
 
