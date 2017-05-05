@@ -29,7 +29,7 @@ class LipaniEstimatorV2(pool: Pool, metric: String, descs: Descs = null) extends
         kru * Math.max(avg(δks), 0d)
       else
         0
-    new Score(ru.id, sru + a)
+    new Score(ru.id, sru + a, metric, pool.qRels)
   }
 
   override def getName = "LipaniV2"

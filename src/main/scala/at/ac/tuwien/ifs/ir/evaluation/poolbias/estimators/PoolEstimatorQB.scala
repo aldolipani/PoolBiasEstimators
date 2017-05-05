@@ -14,7 +14,9 @@ class PoolEstimatorQB(pool:Pool, metric: String, descs: Descs = null) extends Sc
 
   override def getScore(ru: Runs): Score =
       new Score(ru.id, new TRECEval().round(
-        avg(getScoresPerQuery(ru, (ru, pool) => new Score(ru.id, M(ru))).map(_._2.score))))
+        avg(getScoresPerQuery(ru, (ru, pool) =>
+          new Score(ru.id, M(ru), metric, pool.qRels)).map(_._2.score))),
+        metric, pool.qRels)
 
   override def getName = "PoolQB"
 

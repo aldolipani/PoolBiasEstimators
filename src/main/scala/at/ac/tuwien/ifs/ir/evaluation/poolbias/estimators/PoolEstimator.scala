@@ -12,7 +12,7 @@ class PoolEstimator(pool:Pool, metric: String, descs: Descs = null) extends Scor
   override def isMetricSupported(metric:String) = true
 
   override def getScore(runs: Runs): Score = {
-    new Score(runs.id, M(runs))
+    new Score(runs.id, M(runs), metric, pool.qRels)
   }
 
   override def getName = "Pool"

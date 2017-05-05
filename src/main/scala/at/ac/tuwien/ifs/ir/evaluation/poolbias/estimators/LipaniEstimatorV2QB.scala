@@ -93,7 +93,7 @@ class LipaniEstimatorV2QB(pool: Pool, metric: String, descs: Descs = null, D:Int
     //println(ru.id + "\t" + f(sru) + "\t" + f(an) + "\t" + f(ad) + "\t" + f(nsru) + "\t" + R)
 //    println(ru.id + "\t" + f(sru) + "\t" + (asru) + "\t" + (kru) + "\t" + f(Math.max(avg(δks), 0d)) + "\t" + sru * C + "\t" + (sru + a) * C + "\t" + C + "\t" + pool.qRels.size + "\t" + 1d / ((sru + a) * C) + "\t" + λ)
 
-    new Score(ru.id, (sru + a) * C)
+    new Score(ru.id, (sru + a) * C, metric, pool.qRels)
     //new Score(ru.id, pool.qRels.sizeRel)
   }
 
@@ -131,7 +131,7 @@ class LipaniEstimatorV2QB(pool: Pool, metric: String, descs: Descs = null, D:Int
     //println(ru.id + "\t" + f(sru) + "\t" + f(an) + "\t" + f(ad) + "\t" + f(nsru) + "\t" + R)
 //    println("R - " + ru.id + "\t" + f(sru) + "\t" + (asru) + "\t" + (kru) + "\t" + f(Math.max(avg(δks), 0d)) + "\t" + sru * C + "\t" + (sru + a) * C + "\t" + C + "\t" + pool.qRels.size + "\t" + 1d / ((sru + a) * C) + "\t" + λ)
 
-    new Score(ru.id, a * C)
+    new Score(ru.id, a * C, metric, pool.qRels)
     //new Score(ru.id, pool.qRels.sizeRel)
   }
 
@@ -139,7 +139,7 @@ class LipaniEstimatorV2QB(pool: Pool, metric: String, descs: Descs = null, D:Int
     val sru = M(ru)
     val a = getAdjP(ru, pool)
     //new Score(ru.id, sru + (if (a._1 > 0) a._2 else 0d))
-    new Score(ru.id, sru + a)
+    new Score(ru.id, sru + a, metric, pool.qRels)
   }
 
   /*
@@ -223,14 +223,14 @@ class LipaniEstimatorV2QB(pool: Pool, metric: String, descs: Descs = null, D:Int
     //def f(d: Double) = (if (d >= 0) "+" else "") + "%1.5f" format d
     //println(ru.id + "\t" + f(sru) + "\t" + f(an) + "\t" + f(ad) + "\t" + f(nsru) + "\t" + R)
     //println(ru.id + "\t" + f(sru) + "\t" + (an) + "\t" + (ad) + "\t" + f(nsru) + "\t" + R)
-    new Score(ru.id, nsru)
+    new Score(ru.id, nsru, metric, pool.qRels)
   }
 
   override def getScore(ru: Runs): Score = {
     if (metric.startsWith("P_"))
-      new Score(ru.id, avg(getScoresPerQuery(ru, getScoreeP _).map(_._2.score)))
+      new Score(ru.id, avg(getScoresPerQuery(ru, getScoreeP _).map(_._2.score)), metric, pool.qRels)
     else if (metric.startsWith("recall_"))
-      new Score(ru.id, avg(getScoresPerQuery(ru, getScoreR _).map(_._2.score)))
+      new Score(ru.id, avg(getScoresPerQuery(ru, getScoreR _).map(_._2.score)), metric, pool.qRels)
     else
       null
   }

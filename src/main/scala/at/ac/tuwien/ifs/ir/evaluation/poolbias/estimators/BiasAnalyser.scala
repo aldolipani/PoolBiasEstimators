@@ -18,7 +18,7 @@ class BiasAnalyser(trueScoreEstimator:ScoreEstimator, l1xo: L1xo, pValuesDir: Fi
     trueScoresPerQuery.map(l => (l.head._2.runId -> l)).toMap
 
   def differenceError(runScorePerQuery0:Map[Int, Score], runScorePerQuery1:Map[Int, Score]): Map[Int, Double] ={
-    runScorePerQuery0.map(e => (e._1, e._2.score - runScorePerQuery1.getOrElse(e._1, new Score(e._2.runId, 0d)).score))
+    runScorePerQuery0.map(e => (e._1, e._2.score - runScorePerQuery1.getOrElse(e._1, new Score(e._2.runId, 0d, e._2.metric, e._2.qRels)).score))
   }
 
   def printReportAnalysis(poolEstimator:PoolEstimator, scoreEstimator: ScoreEstimator, l1xo: L1xo) {

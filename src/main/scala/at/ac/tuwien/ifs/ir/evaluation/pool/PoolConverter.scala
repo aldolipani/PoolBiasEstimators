@@ -300,7 +300,7 @@ object PoolConverter {
       val nD = args(2).toInt
       new RRFBasedOption(m, k, nD)
     } else if (cmd == "fusionbased") {
-      // rffBased_A:60:3
+      // fusionbased_combmed:10000
       val args = sToPool(1).split(":")
       val m = args(0).toLowerCase()
       val nD = args(1).toInt

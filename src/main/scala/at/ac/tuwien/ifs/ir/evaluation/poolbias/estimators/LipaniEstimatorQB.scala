@@ -18,13 +18,21 @@ class LipaniEstimatorQB(pool:Pool, metric: String, descs: Descs = null) extends 
   override def getNewInstance(pool:Pool) = new LipaniEstimatorQB(pool, metric, descs)
 
   override def getScore(ru: Runs): Score = {
-    if (metric.startsWith("P_"))
+    if (metric.startsWith("P_")) {
+      val scoresPerQuery = getScoresPerQuery(ru, getScoreP _)
+      System.out.println(scoresPerQuery.head._2.qRels.topicIds.size + "********************* LipaniEstimator getScore")
       new Score(ru.id, new TRECEval().round(
-        avg(getScoresPerQuery(ru, getScoreP _).map(_._2.score))))
-    else if (metric.startsWith("recall_"))
+        avg(scoresPerQuery.map(_._2.score))),
+        scoresPerQuery.head._2.metric,
+        scoresPerQuery.head._2.qRels)
+    }else if (metric.startsWith("recall_")) {
+      val scoresPerQuery = getScoresPerQuery(ru, getScoreP _)
+      System.out.println(scoresPerQuery.head._2.qRels.topicIds.size + "********************* LipaniEstimator getScore")
       new Score(ru.id, new TRECEval().round(
-        avg(getScoresPerQuery(ru, getScoreR _).map(_._2.score))))
-    else
+        avg(getScoresPerQuery(ru, getScoreR _).map(_._2.score))),
+        scoresPerQuery.head._2.metric,
+        scoresPerQuery.head._2.qRels)
+    }else
       null
   }
   // Macro Average
@@ -39,7 +47,7 @@ class LipaniEstimatorQB(pool:Pool, metric: String, descs: Descs = null) extends 
     val ad = getAdjP(d, ru, pool)
     val R = pool.qRels.sizeRel
     val srua = (srun * n + an * n)/(R + an * n + ad * (d - n))
-    new Score(ru.id, srua)
+    new Score(ru.id, srua, metric, pool.qRels)
   }
 
   // Micro Average
@@ -64,7 +72,7 @@ class LipaniEstimatorQB(pool:Pool, metric: String, descs: Descs = null) extends 
     //  Math.exp((srun * n + an * n)/(R + an * n)))))// + ad * (d - n))))//0.0008 +- 0.0003
     //val srua = Math.exp(avg(as.map(an =>
     //    Math.log((srun * n + an * n)/(R + an * n)))))// + ad * (d - n))))//0.0008 +- 0.0003
-    new Score(ru.id, srua)
+    new Score(ru.id, srua, metric, pool.qRels)
   }
 
   def getScoreR2(ru: Runs, pool: Pool = this.pool): Score = {
@@ -87,7 +95,7 @@ class LipaniEstimatorQB(pool:Pool, metric: String, descs: Descs = null) extends 
     val R = pool.qRels.sizeRel
     val srua = avg(as.map(a =>
       (srun * n + a * n)/(R + a * n + ad * (d - n))).toList)
-    new Score(ru.id, srua)
+    new Score(ru.id, srua, metric, pool.qRels)
   }
 
 }

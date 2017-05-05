@@ -44,7 +44,7 @@ class LipaniEstimatorV3(pool: Pool, metric: String, descs: Descs = null) extends
       else
         0d
 
-    new Score(ru.id, sru + a)
+    new Score(ru.id, sru + a, metric, pool.qRels)
   }
 
   protected def getScoreP(ru: Runs, R:Int): Score = {
@@ -76,7 +76,7 @@ class LipaniEstimatorV3(pool: Pool, metric: String, descs: Descs = null) extends
       else
         0d
 
-    new Score(ru.id, (sru + a)*n/R)
+    new Score(ru.id, (sru + a)*n/R, metric, pool.qRels)
   }
 
   protected def getScoreRPool(ru: Runs, pool:Pool): Score = {
@@ -120,7 +120,7 @@ class LipaniEstimatorV3(pool: Pool, metric: String, descs: Descs = null) extends
     println(ru.id + "\t" + f(sru) + "\t" + (asru) + "\t" + (kru) + "\t" + f(Math.max(avg(δks), 0d)) + "\t" + sru*C + "\t" + (sru + a)*C + "\t" + C + "\t" + pool.qRels.size + "\t" + 1d/((sru + a)*C) + "\t" + λ)
     */
     //new Score(ru.id, 1d/((sru + a)*C))
-    new Score(ru.id, 1d/(pool.qRels.sizeRel))
+    new Score(ru.id, 1d/(pool.qRels.sizeRel), metric, pool.qRels)
   }
 
   def getScoreR(ru:Runs):Score ={
@@ -132,7 +132,7 @@ class LipaniEstimatorV3(pool: Pool, metric: String, descs: Descs = null) extends
     new Score(ru.id,
       getScoreP(ru) * n *
         avg(pool.qRels.topicIds.map(tId =>
-          1d/pool.qRels.qRels.filter(_.id == tId).head.sizeRel).toList))//getScorePerQuery(ru, getScoreRPool).score)
+          1d/pool.qRels.qRels.filter(_.id == tId).head.sizeRel).toList), metric, pool.qRels)//getScorePerQuery(ru, getScoreRPool).score)
   }
 
   override def getScore(ru: Runs): Score = {

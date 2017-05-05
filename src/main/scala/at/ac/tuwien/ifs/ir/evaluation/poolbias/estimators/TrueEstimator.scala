@@ -14,7 +14,7 @@ class TrueEstimator(pool:Pool, metric: String, descs: Descs = null) extends Scor
   override def isMetricSupported(metric:String) = true
 
   override def getScore(ru: Runs): Score = {
-    new Score(ru.id, M(ru))
+    new Score(ru.id, M(ru), metric, pool.qRels)
   }
 
   override def getScoresPerQuery(ru: Runs, getScore: (Runs, Pool) => Score = getScore): List[(Int, Score)] = {

@@ -2,9 +2,11 @@ package at.ac.tuwien.ifs.ir.evaluation.poolbias.estimators
 
 import java.io.File
 
+import at.ac.tuwien.ifs.ir.evaluation.TRECEval
+import at.ac.tuwien.ifs.ir.evaluation.pool.Pool
 import at.ac.tuwien.ifs.ir.evaluation.poolbias.estimators.bin.Main.L1xo
 import at.ac.tuwien.ifs.ir.evaluation.poolbias.estimators.bin.Main.L1xo.L1xo
-import at.ac.tuwien.ifs.ir.model.Score
+import at.ac.tuwien.ifs.ir.model.{Runs, Score}
 import at.ac.tuwien.ifs.r.Stats._
 import org.apache.commons.math3.stat.correlation.KendallsCorrelation
 import org.sameersingh.scalaplot.Implicits._
@@ -57,6 +59,15 @@ null, metric: String = null) {
     }).sum
   }
 
+  def relativeSystemRankError(testScores: List[Score], lRuns:List[Runs]): Int = {
+    testScores.map(s => {
+      val oR = findRank(trueScoresMap.get(s.runId).get, trueScores)
+      val newTrueScores = lRuns.map(runs => new Score(runs.id, TRECEval().computeMetric(s.metric, runs, s.qRels), s.metric, s.qRels))
+      val nR = findRank(s, newTrueScores.filter(_.runId != s.runId))
+      Math.abs(oR - nR)
+    }).sum
+  }
+
   def systemRankError(testScores: List[Score], pValues: Map[String, Double]): Int = {
     def getPValue(runId1: String, runId2: String) = {
       pValues.getOrElse(runId1 + runId2, pValues.get(runId2 + runId1).getOrElse(
@@ -101,6 +112,7 @@ null, metric: String = null) {
         printReportError("SRE*", this.systemRankError(scores, pValues) + "\tp<0.05")
       }
     }
+    printReportError("RSRE", this.relativeSystemRankError(scores, scoreEstimator.pool.lRuns).toString)
     printReportError("KTauB", ("%1.4f" format round(this.kendallsCorrelation(scores))))
     println("")
   }

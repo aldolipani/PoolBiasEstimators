@@ -27,10 +27,12 @@ class WebberOnRunsEstimatorV3QB(pool: Pool, metric: String, descs: Descs = null,
   override def getScore(ru: Runs): Score = {
     if (metric.startsWith("P_"))
       new Score(ru.id, new TRECEval().round(
-        avg(getScoresPerQuery(ru, getScoreP _).map(_._2.score))))
+        avg(getScoresPerQuery(ru, getScoreP _).map(_._2.score))),
+        metric, pool.qRels)
     else if (metric.startsWith("recall_")) {
       new Score(ru.id, new TRECEval().round(
-        avg(getScoresPerQuery(ru, getScoreR _).map(_._2.score))))
+        avg(getScoresPerQuery(ru, getScoreR _).map(_._2.score))),
+        metric, pool.qRels)
     }else
       null
   }
@@ -53,7 +55,7 @@ class WebberOnRunsEstimatorV3QB(pool: Pool, metric: String, descs: Descs = null,
     //(srun * n + an * n) / (R + ad * d)
 
     //println(ru.id, srua, n, an, R, ad, d, srun)
-    new Score(ru.id, srua)
+    new Score(ru.id, srua, metric, pool.qRels)
   }
 }
 

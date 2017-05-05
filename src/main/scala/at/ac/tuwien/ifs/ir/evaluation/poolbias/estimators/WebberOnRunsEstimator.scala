@@ -36,7 +36,7 @@ class WebberOnRunsEstimator(pool:Pool, metric: String, descs: Descs = null, l1xo
       M(nRun) - M(nRun, nQRels)
     }).seq
     val a = avg(as)
-    new Score(ru.id, sru + a)
+    new Score(ru.id, sru + a, metric, pool.qRels)
   }
 
   override def getName =

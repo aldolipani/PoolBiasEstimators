@@ -210,7 +210,7 @@ class TRECEval(tempDir: String = ".") {
 
   def getScores(qRels: QRels, runs: List[Runs], metric: String): List[Score] =
     runs.map(run => {
-      val score = new Score(run.id, this.computeMetric(metric, run, qRels))
+      val score = new Score(run.id, this.computeMetric(metric, run, qRels), metric, qRels)
       score
     })
 }

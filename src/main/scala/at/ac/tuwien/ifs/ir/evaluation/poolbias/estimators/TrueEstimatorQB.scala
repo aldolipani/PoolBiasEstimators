@@ -12,8 +12,9 @@ import at.ac.tuwien.ifs.utils.Exporter
 class TrueEstimatorQB(pool:Pool, metric: String, descs: Descs = null) extends TrueEstimator(pool, metric, descs) with Exporter{
 
   override def getScore(ru: Runs): Score = {
-    new Score(ru.id, new TRECEval().round(
-      avg(getScoresPerQuery(ru, getScoreWithPool _).map(_._2.score))))
+    new Score(ru.id,
+      new TRECEval().round(avg(getScoresPerQuery(ru, getScoreWithPool _).map(_._2.score))),
+      metric, pool.qRels)
   }
 
   def getScoreWithPool(ru: Runs, pool: Pool = this.pool): Score = {
@@ -21,7 +22,7 @@ class TrueEstimatorQB(pool:Pool, metric: String, descs: Descs = null) extends Tr
     selectPage(getName)
     addRow(Map("ru" -> ru.id, "ru.sru" -> round(M(ru, pool.qRels)).toString))
     //println("#" + ru.id + "," + M(ru, pool.qRels))
-    new Score(ru.id, M(ru, pool.qRels))
+    new Score(ru.id, M(ru, pool.qRels), metric, pool.qRels)
   }
 
   override def getName = "TrueQB"

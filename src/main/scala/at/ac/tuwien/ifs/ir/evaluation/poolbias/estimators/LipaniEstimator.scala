@@ -48,7 +48,7 @@ class LipaniEstimator(pool: Pool, metric: String, descs: Descs = null) extends S
     val n = metric.split("_").last.toInt
     val sru = M(ru, pool.qRels)
     val a = getAdjP(n, ru, pool)
-    new Score(ru.id, sru + a)
+    new Score(ru.id, sru + a, metric, pool.qRels)
   }
 
   override def getScore(ru: Runs): Score = {
