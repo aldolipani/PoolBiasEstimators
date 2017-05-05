@@ -12,18 +12,22 @@ class QRels(val id: String, val qRels: Seq[QRel]) {
   lazy val topicIds = qRels.map(qRel => qRel.id).toSet
 
   lazy val sizeTopics = topicIds.size
-  lazy val size: Int = qRels.map(_.qrelRecord.size).sum
-  lazy val sizeRel: Int = qRels.map(_.qrelRecord.count(_.rel>0)).sum
+  lazy val size: Int = qRels.map(_.qrelRecords.size).sum
+  lazy val sizeRel: Int = qRels.map(_.sizeRel).sum
+  lazy val sizeNotRel: Int = qRels.map(_.sizeNotRel).sum
 
   override def toString: String = qRels.mkString("\n")
 
+  @deprecated
   def getRel(idTopic: Int, idDocument: String) = topicQRels(idTopic).getRel(idDocument)
+
+  def getRel(idTopic: Int, document: Document) = topicQRels(idTopic).getRel(document)
 
   lazy val inverse = new QRels("inv" + id, {
     qRels.map(qR => {
       new QRel(
         qR.id,
-        qR.qrelRecord.map(qRR =>
+        qR.qrelRecords.map(qRR =>
           new QRelRecord(qRR.iteration, qRR.document,
             if (qRR.rel == 0) 1 else 0)))
     })

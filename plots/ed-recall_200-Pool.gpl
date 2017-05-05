@@ -1,0 +1,42 @@
+# Chart settings
+unset key
+set terminal png enhanced 
+
+set terminal png enhanced 
+set output "ed-recall_200-Pool.png"
+# XYChart settings
+set nologscale
+set xr [*:*] noreverse
+set yr [*:*] noreverse
+set xlabel ""
+set ylabel ""
+# XYData Plotting
+plot \
+'-'  using 1:2 title "Label" with linespoints 
+# Label
+-0.025	0.0
+-0.0225	0.0
+-0.020000000000000004	0.0
+-0.0175	0.0
+-0.015	0.0
+-0.0125	0.0
+-0.009999999999999998	0.0
+-0.0075	0.0
+-0.005	0.0
+-0.0025	0.0
+0.0	369.0
+0.0025	60.0
+0.004999999999999999	59.0
+0.0075	54.0
+0.010000000000000002	40.0
+0.0125	28.0
+0.015	21.0
+0.0175	21.0
+0.019999999999999997	18.0
+0.0225	15.0
+end
+
+unset output
+# Wrapup
+set terminal dumb
+refresh

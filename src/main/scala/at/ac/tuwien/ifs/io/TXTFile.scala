@@ -1,6 +1,6 @@
 package at.ac.tuwien.ifs.io
 
-import java.io.{BufferedInputStream, File, FileInputStream}
+import java.io.{IOException, BufferedInputStream, File, FileInputStream}
 import java.nio.charset.StandardCharsets
 import java.nio.file.{Files, Path, Paths}
 import java.util.zip.GZIPInputStream
@@ -26,6 +26,16 @@ object TXTFile {
   }
 
   def writeFile(path: String, text: String) {
+    Files.write(Paths.get(path), text.getBytes(StandardCharsets.UTF_8))
+  }
+
+  def reWriteFile(path: String, text: String) {
+    if(Files.exists(Paths.get(path)))
+      try {
+        Files.delete(Paths.get(path))
+      }catch{
+        case e:IOException => e.printStackTrace()
+      }
     Files.write(Paths.get(path), text.getBytes(StandardCharsets.UTF_8))
   }
 

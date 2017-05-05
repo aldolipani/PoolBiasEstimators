@@ -1,0 +1,42 @@
+# Chart settings
+unset key
+set terminal png enhanced 
+
+set terminal png enhanced 
+set output "ed-recall_200-WebberOnRuns.png"
+# XYChart settings
+set nologscale
+set xr [*:*] noreverse
+set yr [*:*] noreverse
+set xlabel ""
+set ylabel ""
+# XYData Plotting
+plot \
+'-'  using 1:2 title "Label" with linespoints 
+# Label
+-0.025	2.0
+-0.0225	3.0
+-0.020000000000000004	2.0
+-0.0175	8.0
+-0.015	21.0
+-0.0125	35.0
+-0.009999999999999998	36.0
+-0.0075	50.0
+-0.005	106.0
+-0.0025	133.0
+0.0	171.0
+0.0025	38.0
+0.004999999999999999	37.0
+0.0075	19.0
+0.010000000000000002	16.0
+0.0125	15.0
+0.015	10.0
+0.0175	3.0
+0.019999999999999997	10.0
+0.0225	2.0
+end
+
+unset output
+# Wrapup
+set terminal dumb
+refresh

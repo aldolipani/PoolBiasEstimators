@@ -1,0 +1,42 @@
+# Chart settings
+unset key
+set terminal png enhanced 
+
+set terminal png enhanced 
+set output "ed-recall_50-LipaniV2QB.png"
+# XYChart settings
+set nologscale
+set xr [*:*] noreverse
+set yr [*:*] noreverse
+set xlabel ""
+set ylabel ""
+# XYData Plotting
+plot \
+'-'  using 1:2 title "Label" with linespoints 
+# Label
+-0.025	6.0
+-0.0225	4.0
+-0.020000000000000004	4.0
+-0.0175	7.0
+-0.015	13.0
+-0.0125	11.0
+-0.009999999999999998	20.0
+-0.0075	29.0
+-0.005	40.0
+-0.0025	112.0
+0.0	1842.0
+0.0025	54.0
+0.004999999999999999	33.0
+0.0075	31.0
+0.010000000000000002	20.0
+0.0125	15.0
+0.015	14.0
+0.0175	6.0
+0.019999999999999997	8.0
+0.0225	2.0
+end
+
+unset output
+# Wrapup
+set terminal dumb
+refresh

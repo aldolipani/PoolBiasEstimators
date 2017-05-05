@@ -7,10 +7,10 @@ import org.scalatest.{FlatSpec, Matchers}
 
 import scala.io.Source
 
-class TestScoresError extends FlatSpec with Matchers {
+class TestScoreError extends FlatSpec with Matchers {
 
   def round(score: Double):Double = Math.round(score * 10000) / 10000d
-
+/*
   "ScoreError" should " return the right MAE" in {
     val trueScores = List(
       new Score("A", 0.5d),
@@ -68,6 +68,6 @@ class TestScoresError extends FlatSpec with Matchers {
     val pValues: Map[String, Double] = Source.fromFile(new File(getClass.getResource("pValues/pValues.P_5.csv").getPath)).getLines().map(_.split(",")).filter(_.size == 3).map(a => (a(0).replace("input.", "") + a(1).replace("input.", "") -> a(2).toDouble)).toMap
 
     sE.systemRankError(newScores,pValues) should be(1)
-  }
+  }*/
 
 }

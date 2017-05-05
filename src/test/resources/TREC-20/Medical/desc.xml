@@ -1,0 +1,510 @@
+<set>
+    <runs>
+        <tag>AEHRC1</tag>
+        <organization>Australian e-Health Research Center</organization>
+    </runs>
+    <runs>
+        <tag>AEHRC2</tag>
+        <organization>Australian e-Health Research Center</organization>
+    </runs>
+    <runs>
+        <tag>BiTeMbase</tag>
+        <organization>Bibliomics and Text Mining Group</organization>
+    </runs>
+    <runs>
+        <tag>BiTeMmEsh</tag>
+        <organization>Bibliomics and Text Mining Group</organization>
+    </runs>
+    <runs>
+        <tag>BiTeMmhICD</tag>
+        <organization>Bibliomics and Text Mining Group</organization>
+    </runs>
+    <runs>
+        <tag>BiTeMsnomed</tag>
+        <organization>Bibliomics and Text Mining Group</organization>
+    </runs>
+    <runs>
+        <tag>CWI1</tag>
+        <organization>Centrum Wiskunde + Informatica</organization>
+    </runs>
+    <runs>
+        <tag>CWI2</tag>
+        <organization>Centrum Wiskunde + Informatica</organization>
+    </runs>
+    <runs>
+        <tag>CWI3</tag>
+        <organization>Centrum Wiskunde + Informatica</organization>
+    </runs>
+    <runs>
+        <tag>CWI4</tag>
+        <organization>Centrum Wiskunde + Informatica</organization>
+    </runs>
+    <runs>
+        <tag>CengageM11R1</tag>
+        <organization>Cengage Learning</organization>
+    </runs>
+    <runs>
+        <tag>CengageM11R2</tag>
+        <organization>Cengage Learning</organization>
+    </runs>
+    <runs>
+        <tag>CengageM11R3</tag>
+        <organization>Cengage Learning</organization>
+    </runs>
+    <runs>
+        <tag>CengageM11R4</tag>
+        <organization>Cengage Learning</organization>
+    </runs>
+    <runs>
+        <tag>DEMIR1BASE</tag>
+        <organization>Dokuz Eylul University</organization>
+    </runs>
+    <runs>
+        <tag>DEMIR2TW</tag>
+        <organization>Dokuz Eylul University</organization>
+    </runs>
+    <runs>
+        <tag>DEMIR4TWP</tag>
+        <organization>Dokuz Eylul University</organization>
+    </runs>
+    <runs>
+        <tag>EssieAuto</tag>
+        <organization>US National Library of Medicine</organization>
+    </runs>
+    <runs>
+        <tag>INDRI</tag>
+        <organization>Kobe University</organization>
+    </runs>
+    <runs>
+        <tag>IRITa1</tag>
+        <organization>Inst. for Research in Informatics of Toulouse</organization>
+    </runs>
+    <runs>
+        <tag>IRITa1QE1</tag>
+        <organization>Inst. for Research in Informatics of Toulouse</organization>
+    </runs>
+    <runs>
+        <tag>IRITm1</tag>
+        <organization>Inst. for Research in Informatics of Toulouse</organization>
+    </runs>
+    <runs>
+        <tag>IRITm1QE1</tag>
+        <organization>Inst. for Research in Informatics of Toulouse</organization>
+    </runs>
+    <runs>
+        <tag>NICTA1</tag>
+        <organization>NICTA - National ICT Australia</organization>
+    </runs>
+    <runs>
+        <tag>NICTA2</tag>
+        <organization>NICTA - National ICT Australia</organization>
+    </runs>
+    <runs>
+        <tag>NICTA3</tag>
+        <organization>NICTA - National ICT Australia</organization>
+    </runs>
+    <runs>
+        <tag>NICTA4</tag>
+        <organization>NICTA - National ICT Australia</organization>
+    </runs>
+    <runs>
+        <tag>NICTA5</tag>
+        <organization>NICTA - National ICT Australia</organization>
+    </runs>
+    <runs>
+        <tag>NICTA6</tag>
+        <organization>NICTA - National ICT Australia</organization>
+    </runs>
+    <runs>
+        <tag>NICTA7</tag>
+        <organization>NICTA - National ICT Australia</organization>
+    </runs>
+    <runs>
+        <tag>NLMAutoLuc</tag>
+        <organization>US National Library of Medicine</organization>
+    </runs>
+    <runs>
+        <tag>NLMLucene</tag>
+        <organization>US National Library of Medicine</organization>
+    </runs>
+    <runs>
+        <tag>NLMLucenePS</tag>
+        <organization>US National Library of Medicine</organization>
+    </runs>
+    <runs>
+        <tag>NLMManual</tag>
+        <organization>US National Library of Medicine</organization>
+    </runs>
+    <runs>
+        <tag>NLMManualLuc</tag>
+        <organization>US National Library of Medicine</organization>
+    </runs>
+    <runs>
+        <tag>NORERANK</tag>
+        <organization>Kobe University</organization>
+    </runs>
+    <runs>
+        <tag>NORERANK2</tag>
+        <organization>Kobe University</organization>
+    </runs>
+    <runs>
+        <tag>NORERANK2N</tag>
+        <organization>Kobe University</organization>
+    </runs>
+    <runs>
+        <tag>RERANK</tag>
+        <organization>Kobe University</organization>
+    </runs>
+    <runs>
+        <tag>RERANK2</tag>
+        <organization>Kobe University</organization>
+    </runs>
+    <runs>
+        <tag>RERANK2N</tag>
+        <organization>Kobe University</organization>
+    </runs>
+    <runs>
+        <tag>RMIT1</tag>
+        <organization>RMIT University</organization>
+    </runs>
+    <runs>
+        <tag>RMIT2</tag>
+        <organization>RMIT University</organization>
+    </runs>
+    <runs>
+        <tag>RMIT3</tag>
+        <organization>RMIT University</organization>
+    </runs>
+    <runs>
+        <tag>RMITN1</tag>
+        <organization>RMIT University</organization>
+    </runs>
+    <runs>
+        <tag>RMITN2</tag>
+        <organization>RMIT University</organization>
+    </runs>
+    <runs>
+        <tag>RMITN3</tag>
+        <organization>RMIT University</organization>
+    </runs>
+    <runs>
+        <tag>SCAIMED1</tag>
+        <organization>Fraunhofer SCAI</organization>
+    </runs>
+    <runs>
+        <tag>SCAIMED2</tag>
+        <organization>Fraunhofer SCAI</organization>
+    </runs>
+    <runs>
+        <tag>SCAIMED3</tag>
+        <organization>Fraunhofer SCAI</organization>
+    </runs>
+    <runs>
+        <tag>SCAIMED4</tag>
+        <organization>Fraunhofer SCAI</organization>
+    </runs>
+    <runs>
+        <tag>SCAIMED5</tag>
+        <organization>Fraunhofer SCAI</organization>
+    </runs>
+    <runs>
+        <tag>SCAIMED6</tag>
+        <organization>Fraunhofer SCAI</organization>
+    </runs>
+    <runs>
+        <tag>SCAIMED7</tag>
+        <organization>Fraunhofer SCAI</organization>
+    </runs>
+    <runs>
+        <tag>SQM</tag>
+        <organization>U. Amsterdam, U. Twente, Erasmus U. Medical Center</organization>
+    </runs>
+    <runs>
+        <tag>UCDCSIrun3</tag>
+        <organization>University College Dublin (UCD_CSI)</organization>
+    </runs>
+    <runs>
+        <tag>UCDCSIrun4</tag>
+        <organization>University College Dublin (UCD_CSI)</organization>
+    </runs>
+    <runs>
+        <tag>UCDCSIrunOne</tag>
+        <organization>University College Dublin (UCD_CSI)</organization>
+    </runs>
+    <runs>
+        <tag>UCDCSIrunTwo</tag>
+        <organization>University College Dublin (UCD_CSI)</organization>
+    </runs>
+    <runs>
+        <tag>UDMedBL</tag>
+        <organization>University of Delaware (Fang)</organization>
+    </runs>
+    <runs>
+        <tag>UDMedComb</tag>
+        <organization>University of Delaware (Fang)</organization>
+    </runs>
+    <runs>
+        <tag>UDMedDiv</tag>
+        <organization>University of Delaware (Fang)</organization>
+    </runs>
+    <runs>
+        <tag>UDMedExp</tag>
+        <organization>University of Delaware (Fang)</organization>
+    </runs>
+    <runs>
+        <tag>UDMedProx</tag>
+        <organization>University of Delaware (Fang)</organization>
+    </runs>
+    <runs>
+        <tag>UHU1BL</tag>
+        <organization>Universities of Huelva, Europea de Madrid and Vigo</organization>
+    </runs>
+    <runs>
+        <tag>UHU2MFB</tag>
+        <organization>Universities of Huelva, Europea de Madrid and Vigo</organization>
+    </runs>
+    <runs>
+        <tag>UHU3BWRTDDD</tag>
+        <organization>Universities of Huelva, Europea de Madrid and Vigo</organization>
+    </runs>
+    <runs>
+        <tag>UHU4BWRTDDD2</tag>
+        <organization>Universities of Huelva, Europea de Madrid and Vigo</organization>
+    </runs>
+    <runs>
+        <tag>UIICTSmed01</tag>
+        <organization>University of Iowa (UI_ICTS)</organization>
+    </runs>
+    <runs>
+        <tag>UIICTSmed02</tag>
+        <organization>University of Iowa (UI_ICTS)</organization>
+    </runs>
+    <runs>
+        <tag>UIICTSmed03</tag>
+        <organization>University of Iowa (UI_ICTS)</organization>
+    </runs>
+    <runs>
+        <tag>UIICTSmed04</tag>
+        <organization>University of Iowa (UI_ICTS)</organization>
+    </runs>
+    <runs>
+        <tag>UIICTSmed05</tag>
+        <organization>University of Iowa (UI_ICTS)</organization>
+    </runs>
+    <runs>
+        <tag>UIICTSmed06</tag>
+        <organization>University of Iowa (UI_ICTS)</organization>
+    </runs>
+    <runs>
+        <tag>UIICTSmed07</tag>
+        <organization>University of Iowa (UI_ICTS)</organization>
+    </runs>
+    <runs>
+        <tag>UIICTSmed08</tag>
+        <organization>University of Iowa (UI_ICTS)</organization>
+    </runs>
+    <runs>
+        <tag>UIowaSMED1</tag>
+        <organization>University of Iowa (UlowaS)</organization>
+    </runs>
+    <runs>
+        <tag>UIowaSMED2</tag>
+        <organization>University of Iowa (UlowaS)</organization>
+    </runs>
+    <runs>
+        <tag>UIowaSMED3</tag>
+        <organization>University of Iowa (UlowaS)</organization>
+    </runs>
+    <runs>
+        <tag>UIowaSMED4</tag>
+        <organization>University of Iowa (UlowaS)</organization>
+    </runs>
+    <runs>
+        <tag>UTDHLTCIR</tag>
+        <organization>University of Texas at Dallas</organization>
+    </runs>
+    <runs>
+        <tag>UTDHLTCIRLS</tag>
+        <organization>University of Texas at Dallas</organization>
+    </runs>
+    <runs>
+        <tag>UTDHLTMK</tag>
+        <organization>University of Texas at Dallas</organization>
+    </runs>
+    <runs>
+        <tag>UTDHLTSL</tag>
+        <organization>University of Texas at Dallas</organization>
+    </runs>
+    <runs>
+        <tag>WWOCorrect</tag>
+        <organization>U. Amsterdam, U. Twente, Erasmus U. Medical Center</organization>
+    </runs>
+    <runs>
+        <tag>baselucene</tag>
+        <organization>U. Amsterdam, U. Twente, Erasmus U. Medical Center</organization>
+    </runs>
+    <runs>
+        <tag>buptpris01</tag>
+        <organization>Beijing Univ. of Posts and Telecommunications</organization>
+    </runs>
+    <runs>
+        <tag>buptpris02</tag>
+        <organization>Beijing Univ. of Posts and Telecommunications</organization>
+    </runs>
+    <runs>
+        <tag>csirTC1</tag>
+        <organization>CSIRO</organization>
+    </runs>
+    <runs>
+        <tag>csirTC2</tag>
+        <organization>CSIRO</organization>
+    </runs>
+    <runs>
+        <tag>emc1</tag>
+        <organization>Erasmus Medical Center</organization>
+    </runs>
+    <runs>
+        <tag>emc2</tag>
+        <organization>Erasmus Medical Center</organization>
+    </runs>
+    <runs>
+        <tag>emc3</tag>
+        <organization>Erasmus Medical Center</organization>
+    </runs>
+    <runs>
+        <tag>emc4</tag>
+        <organization>Erasmus Medical Center</organization>
+    </runs>
+    <runs>
+        <tag>explucene</tag>
+        <organization>U. Amsterdam, U. Twente, Erasmus U. Medical Center</organization>
+    </runs>
+    <runs>
+        <tag>mayo2noprop</tag>
+        <organization>Mayo Clinic</organization>
+    </runs>
+    <runs>
+        <tag>mayoauto</tag>
+        <organization>Mayo Clinic</organization>
+    </runs>
+    <runs>
+        <tag>mayobaseline</tag>
+        <organization>Mayo Clinic</organization>
+    </runs>
+    <runs>
+        <tag>mayocooccur</tag>
+        <organization>Mayo Clinic</organization>
+    </runs>
+    <runs>
+        <tag>mayolbra</tag>
+        <organization>Mayo Clinic</organization>
+    </runs>
+    <runs>
+        <tag>mayolbrst</tag>
+        <organization>Mayo Clinic</organization>
+    </runs>
+    <runs>
+        <tag>mayoubr</tag>
+        <organization>Mayo Clinic</organization>
+    </runs>
+    <runs>
+        <tag>merckkgaamer</tag>
+        <organization>Merck KGaA</organization>
+    </runs>
+    <runs>
+        <tag>newton</tag>
+        <organization>University of Michigan</organization>
+    </runs>
+    <runs>
+        <tag>newtonA</tag>
+        <organization>University of Michigan</organization>
+    </runs>
+    <runs>
+        <tag>newtonB</tag>
+        <organization>University of Michigan</organization>
+    </runs>
+    <runs>
+        <tag>newtonC</tag>
+        <organization>University of Michigan</organization>
+    </runs>
+    <runs>
+        <tag>newtonD</tag>
+        <organization>University of Michigan</organization>
+    </runs>
+    <runs>
+        <tag>nobel</tag>
+        <organization>University of Michigan</organization>
+    </runs>
+    <runs>
+        <tag>ohsuManAll</tag>
+        <organization>Oregon Health + Science University</organization>
+    </runs>
+    <runs>
+        <tag>ohsuManLim</tag>
+        <organization>Oregon Health + Science University</organization>
+    </runs>
+    <runs>
+        <tag>shannon</tag>
+        <organization>University of Michigan</organization>
+    </runs>
+    <runs>
+        <tag>udelbl</tag>
+        <organization>University of Delaware (udel)</organization>
+    </runs>
+    <runs>
+        <tag>udelgn</tag>
+        <organization>University of Delaware (udel)</organization>
+    </runs>
+    <runs>
+        <tag>udelmx</tag>
+        <organization>University of Delaware (udel)</organization>
+    </runs>
+    <runs>
+        <tag>udelpm</tag>
+        <organization>University of Delaware (udel)</organization>
+    </runs>
+    <runs>
+        <tag>unityranked</tag>
+        <organization>University of Colorado School of Medicine</organization>
+    </runs>
+    <runs>
+        <tag>uogTrDeNIo</tag>
+        <organization>University of Glasgow (Terrier)</organization>
+    </runs>
+    <runs>
+        <tag>uogTrDeNSo</tag>
+        <organization>University of Glasgow (Terrier)</organization>
+    </runs>
+    <runs>
+        <tag>uogTrDeNfCE</tag>
+        <organization>University of Glasgow (Terrier)</organization>
+    </runs>
+    <runs>
+        <tag>uogTrDeNsEc</tag>
+        <organization>University of Glasgow (Terrier)</organization>
+    </runs>
+    <runs>
+        <tag>uogTrMDeNFo</tag>
+        <organization>University of Glasgow (Terrier)</organization>
+    </runs>
+    <runs>
+        <tag>york11CB1</tag>
+        <organization>York University</organization>
+    </runs>
+    <runs>
+        <tag>york11CQ2</tag>
+        <organization>York University</organization>
+    </runs>
+    <runs>
+        <tag>york11mQeD1</tag>
+        <organization>York University</organization>
+    </runs>
+    <runs>
+        <tag>york11mSB1</tag>
+        <organization>York University</organization>
+    </runs>
+    <runs>
+        <tag>zen</tag>
+        <organization>University of Michigan</organization>
+    </runs>
+</set>

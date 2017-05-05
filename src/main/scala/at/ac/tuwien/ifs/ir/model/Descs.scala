@@ -17,9 +17,9 @@ class Descs(val descs: List[Desc]) {
 
   def getRunsPerOrganization(runs: List[Runs]) =
     descs.map(_.runs.map(rs => {
-      val l = runs.filter(r => r.id == rs.tag)
+      val l = runs.filter(r => r.id.split("@").head == rs.tag)
       if (l.nonEmpty) l.head else null
-    }).filter(_ != null)).filter(_.nonEmpty).toList
+    }).filter(_ != null)).filter(_.nonEmpty)
 
   def contains(tag: String) = tags.contains(tag)
 }

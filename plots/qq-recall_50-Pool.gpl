@@ -1,0 +1,20 @@
+# Chart settings
+unset key
+set terminal png enhanced 
+
+set terminal png enhanced 
+set output "qq-recall_50-Pool.png"
+# XYChart settings
+set nologscale
+set xr [*:*] noreverse
+set yr [*:*] noreverse
+set xlabel ""
+set ylabel ""
+# XYData Plotting
+plot \
+'qq-recall_50-Pool-Label.dat'  using 1:2 title "Label" with points 
+
+unset output
+# Wrapup
+set terminal dumb
+refresh

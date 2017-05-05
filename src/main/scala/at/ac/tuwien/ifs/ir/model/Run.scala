@@ -14,6 +14,7 @@ class Run(val id: Int, val runRecords: List[RunRecord]) {
   override def toString: String = runRecords.sortBy(-_.score).map(s"$id " + _.toString).mkString("\n")
 
   def getByDocumentId(id: String): RunRecord = runRecordsMapByDocumentID.getOrElse(id, null)
+
 }
 
 object Run {
@@ -41,6 +42,7 @@ object Run {
   }
 
   def fromListOfItems(list: List[Array[String]]): Run = {
+    //println(list.head.take(10).mkString(","))
     val id = runIDToInt(list.head.head)
     val nList = normalizeRawRank(list.filterNot(_.length == 4))
     val uList = filterDuplicateDocuments(nList)

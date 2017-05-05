@@ -1,0 +1,4 @@
+Manifest-Version: 1.0
+Main-Class: at.ac.tuwien.ifs.ir.evaluation.poolbias.estimators.bin.Mai
+ n
+

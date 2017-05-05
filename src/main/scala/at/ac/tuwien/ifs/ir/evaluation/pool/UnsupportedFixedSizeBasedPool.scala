@@ -27,7 +27,7 @@ object UnsupportedFixedSizeBasedPool {
 
   def apply(cmd: String, poolSize:Int, lRuns: List[Runs], gT: QRels) = new UnsupportedFixedSizeBasedPool(cmd, poolSize, lRuns, gT)
 
-  def getPooledDocuments(topicSizes:Map[Int, Int], cmd: String, lRuns: List[Runs], qRels: QRels): Map[Int, Set[Document]] = {
+  def getPooledDocuments(cmd: String, topicSizes:Map[Int, Int], lRuns: List[Runs], qRels: QRels): Map[Int, Set[Document]] = {
     def getRandomString = 1 to 10 map (i => Random.nextInt(10)) mkString ("")
 
     def clearFolder(name: String):Unit = {

@@ -5,34 +5,27 @@ import at.ac.tuwien.ifs.ir.model.{Document, QRels, Runs}
 /**
  * Created by aldo on 14/09/15.
  */
-class StratifiedPool(stratas:List[Strata], lRuns: List[Runs], qRels: QRels) extends Pool(lRuns, qRels) {
+class StratifiedPool(stratas:List[Strata], lRuns: List[Runs], gT: QRels) extends Pool(lRuns, gT) {
 
-  def getPooledDocuments(topicId: Int): Set[Document] = StratifiedPool.getPooledDocuments(topicId)(stratas, lRuns)
+  override def getName = StratifiedPool.getName(stratas)
+
+  override lazy val qRels:QRels = PoolConverter.repoolToStratified(stratas, lRuns, gT)
+
+  override def getNewInstance(lRuns: List[Runs]):Pool = new StratifiedPool(stratas, lRuns, gT)
+
+  override def getPooledDocuments(topicId: Int): Set[Document] = StratifiedPool.getPooledDocuments(stratas, lRuns)(topicId)
 
 }
 
 object StratifiedPool{
 
+  def getName(stratas:List[Strata]) = "Stratified_" + stratas.map(s => s.depth + ":" + s.rate).mkString("_")
+
   val rnd = new scala.util.Random(1234)
 
   def isSampled(p:Float):Boolean = rnd.nextFloat() <= p
-/*
-  def getPooledDocuments(topicId:Int)(stratas:List[Strata], lRuns:List[Runs]):Set[Document] = {
-    def getPooledDocuments(stratas:List[Strata], lRun:List[Run], acc:Set[Document]):Set[Document] = {
-      if(stratas.isEmpty)
-        acc
-      else {
-        val strata = stratas.head
-        getPooledDocuments(
-          stratas.tail,
-          lRun.map(r => new Run(r.id, r.runRecords.drop(strata.depth))),
-          UniformSampledPool.getPooledDocuments(strata.depth, strata.rate, lRun))
-      }
-    }
-    getPooledDocuments(stratas, lRuns.map(_.selectByTopicId(topicId)), Set())
-  }*/
 
-  def getPooledDocuments(topicId:Int)(stratas:List[Strata], lRuns:List[Runs]):Set[Document] = {
+  def getPooledDocuments(stratas:List[Strata], lRuns:List[Runs])(topicId:Int):Set[Document] = {
     val depths = stratas.foldLeft(List(0))((acc, s) => acc:+(acc.last + s.depth))
 
     val stratifiedPool:List[Set[Document]] = {
@@ -51,9 +44,12 @@ object StratifiedPool{
     }
 
     val stratifiedSampledPool:Set[Document] = stratifiedPool.zip(stratas).map(sPSs => {
-      sPSs._1.filter(e => isSampled(sPSs._2.rate/100f))
+      val temp = sPSs._1.filter(e => isSampled(sPSs._2.rate/100f))
+      temp
     }).flatten.toSet
 
     stratifiedSampledPool
   }
+
+  def apply(stratas:List[Strata], lRuns: List[Runs], qRels: QRels) = new StratifiedPool(stratas, lRuns, qRels)
 }
