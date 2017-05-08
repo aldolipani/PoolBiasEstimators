@@ -2,10 +2,7 @@ package at.ac.tuwien.ifs.ir.evaluation.poolbias.estimators.bin
 
 import java.io.File
 
-import at.ac.tuwien.ifs.ir.evaluation.pool.PoolAnalyzerType
-import at.ac.tuwien.ifs.ir.evaluation.pool.PoolAnalyzerType
-import at.ac.tuwien.ifs.ir.evaluation.pool.PoolAnalyzerType.PoolAnalyzerType
-import at.ac.tuwien.ifs.ir.evaluation.poolbias.estimators.Analysis
+import at.ac.tuwien.ifs.ir.evaluation.poolbias.estimators.{GeneratePool, Analysis}
 import at.ac.tuwien.ifs.ir.evaluation.poolbias.estimators.bin.Main.L1xo.L1xo
 import at.ac.tuwien.ifs.ir.evaluation.poolbias.estimators.bin.Main.PrintOut.PrintOut
 
@@ -26,7 +23,8 @@ object Main extends App {
     val onlyRuns, onlyAnalysis, onlyErrors, all = Value
   }
 
-  case class Config(trecRelFile: File = null,
+  case class Config(command:String = "biasAnalysis",
+                    trecRelFile: File = null,
                     trecRunsDir: File = null,
                     trecRunsFile: File = null,
                     descRunsFile: File = null,
@@ -38,12 +36,15 @@ object Main extends App {
                     estimators:String = "Pool",
                     metrics:String = "P_*,recall_*",
                     sizeRuns:Int = 0,
-                    poolAnalyzerType:String = "MODE"
-                   )
+                    poolAnalyzerType:String = "MODE",
+                    discoverPooledRuns: Boolean = false)
 
   override def main(args: Array[String]){
     val parser = new scopt.OptionParser[Config]("pool_bias_estimators") {
       head("pool_bias_estimators", "2.0")
+      opt[String]("command") optional() action { (x, c) =>
+        c.copy(command = x)
+      } text ("") //TODO
       opt[String]("metrics") optional() action { (x, c) =>
         c.copy(metrics = x)
       } text ("")//TODO
@@ -74,6 +75,9 @@ object Main extends App {
       opt[String]("poolAnalyzerType") optional() action { (x, c) =>
         c.copy(poolAnalyzerType = x.toLowerCase)
       } text ("")
+      opt[Unit]('i', "discoverPooledRuns") action { (x, c) =>
+        c.copy(discoverPooledRuns = true)
+      } text ("use only the top 75% of pooled runs per metric")
       opt[Unit]('t', "top75Runs") action { (x, c) =>
         c.copy(top75Runs = true)
       } text ("use only the top 75% of pooled runs per metric")
@@ -97,10 +101,14 @@ object Main extends App {
 
     parser.parse(args, Config()) match {
       case Some(config) => {
-        val analysis = Analysis(config.metrics, config.estimators)
-        if(false){// TODO
+        if(config.command == "generatePool"){
+          val generatePool = GeneratePool()
+          generatePool.generate(config.trecRelFile, config.trecRunsDir, config.toPool, config.sizeRuns, config.discoverPooledRuns, config.poolAnalyzerType)
+        } else if(false){// TODO
+          val analysis = Analysis(config.metrics, config.estimators)
           analysis.analyzePool(config.trecRelFile, config.trecRunsDir, config.descRunsFile, config.pValuesDir, config.l1xo, config.top75Runs, config.toPool, config.poolAnalyzerType)
-        }else {
+        } else {
+          val analysis = Analysis(config.metrics, config.estimators)
           if (config.trecRunsFile == null) {
             if (config.printOut == PrintOut.onlyErrors)
               analysis.computeOnlyErrors(config.trecRelFile, config.trecRunsDir, config.descRunsFile, config.pValuesDir, config.l1xo, config.top75Runs, config.poolAnalyzerType)

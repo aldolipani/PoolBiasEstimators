@@ -107,13 +107,14 @@ class PoolAnalyzer(val pool: Pool, poolAnalyzerType:PoolAnalyzerType = PoolAnaly
             val aSize = getApproximateSize(PoolAnalyzer.fixRun(run, qRel), qRel, d/10)
             //println(sRuns.id, tId, aSize, run == null || aSize >= d || run.runRecords.size == aSize)
             //println(sRuns.id, tId, aSize, d, run.runRecords.size)
-            run == null || aSize >= d || run.runRecords.size == aSize
+            run == null || aSize >= d || aSize >= run.runRecords.size
           }))
           getPooledRuns(lRuns.tail, pooledRuns :+ sRuns)
         else
           getPooledRuns(lRuns.tail, pooledRuns)
       }
     }
+
     if(d == 0)
       Nil
     else

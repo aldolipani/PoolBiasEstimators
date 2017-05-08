@@ -16,7 +16,7 @@ import at.ac.tuwien.ifs.ir.model.{Descs, QRels, Runs}
  * Created by aldo on 10/10/14.
  */
 
-class Analysis(val metrics:List[String], val estimators:List[String]) {
+class Analysis(val metrics:List[String], val estimators:List[String]) extends Command{
 
 
   def computeAll(trecRelFile: File, trecRunsDir: File, descRunsFile: File, pValuesDir: File, l1xo: L1xo, top75Runs: Boolean, toPool:String, sizeRuns:Int, poolAnalyzerType:String) {
@@ -119,8 +119,6 @@ class Analysis(val metrics:List[String], val estimators:List[String]) {
         compute75TopRuns(nPool, descs, metric, pValuesDir, l1xo, PrintOut.all)
     }*/
   }
-
-  private def getQRels(file: File) = QRels.fromLines("test", TXTFile.getLines(file))
 
   def computeEstimatesAll(trecRelFile: File, trecRunsDir: File, trecRunFile:File, descRunsFile: File, pValuesDir: File, toPool:String, poolAnalyzerType: String) {
     printParameters(trecRelFile, trecRunsDir, trecRunFile, toPool,poolAnalyzerType)
@@ -334,22 +332,6 @@ class Analysis(val metrics:List[String], val estimators:List[String]) {
           //LipaniEstimatorV3(pool, metric, descs)
         ).filter(e => e.isMetricSupported(metric) && estimators.contains(e.getName))
 
-  private def getListRuns(path: String): List[Runs] = getListRuns(new File(path))
-
-  private def getListRuns(path: File): List[Runs] = {
-    val lF = path.listFiles
-    lF.filterNot(_.getName.startsWith(".")).map(getRuns(_)).toList
-  }
-
-  private def getRuns(path: File): Runs =
-    Runs.fromLines(TXTFile.getLines(path.getCanonicalPath), path.getName.replaceAllLiterally("input.",""))
-
-  private def getListRuns(path: String, n: Int): List[Runs] = {
-    val lF = new File(path).listFiles.take(n)
-    lF.filter(f => f.getName.endsWith(".gz")).map(f => {
-      Runs.fromLines(TXTFile.getLines(f.getCanonicalPath), f.getName.replaceAllLiterally("input.",""))
-    }).toList
-  }
 
   // Printing Methods
 

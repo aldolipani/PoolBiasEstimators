@@ -11,7 +11,7 @@ class QRel(val id: Int, val qrelRecords: List[QRelRecord]) {
   lazy val sizeRel: Int = qrelRecords.count(qR => qR.rel > 0)
   lazy val sizeNotRel: Int = qrelRecords.count(qR => qR.rel == 0)
 
-  override def toString: String = qrelRecords.map(s"$id " + _.toString).mkString("\n")
+  override def toString: String = qrelRecords.sortBy(_.document).map(s"$id " + _.toString).mkString("\n")
 
   def containsDocumentId(id: String): Boolean = documentIDs.contains(id) //||
   //    (if (id.startsWith("ZF0")) documentIDs.contains(id.replace("ZF0", "ZF10")) || documentIDs.contains(id.replace("ZF0", "ZF20")) else false)

@@ -208,6 +208,7 @@ object PoolConverter {
     }
     case MABBasedOption(m, c1, c2, nD) => pool match {
       case pool: DepthNPool => MABBasedPool(m, c1, c2, nD, pool.lRuns, pool.qRels)
+      case pool: Pool => MABBasedPool(m, c1, c2, nD, pool.lRuns, pool.qRels)
     }
     case RRFBasedOption(m, k, nD) => pool match {
       case pool: DepthNPool => RRFBasedPool(m, k, nD, pool.lRuns, pool.qRels)

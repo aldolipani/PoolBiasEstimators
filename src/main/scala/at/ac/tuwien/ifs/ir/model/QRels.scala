@@ -16,7 +16,7 @@ class QRels(val id: String, val qRels: Seq[QRel]) {
   lazy val sizeRel: Int = qRels.map(_.sizeRel).sum
   lazy val sizeNotRel: Int = qRels.map(_.sizeNotRel).sum
 
-  override def toString: String = qRels.mkString("\n")
+  override def toString: String = qRels.sortBy(_.id)mkString("\n")
 
   @deprecated
   def getRel(idTopic: Int, idDocument: String) = topicQRels(idTopic).getRel(idDocument)
