@@ -35,7 +35,7 @@ class Analysis(val metrics:List[String], val estimators:List[String]) {
     val nlRuns =
       if(sizeRuns > 0) {
         println("Resizing Pooled Runs to " + sizeRuns)
-        RunsTransformer.resizeRuns(sizeRuns, poolAnalyser.pooledRuns)
+        RunsTransformer.resizeRuns(sizeRuns, poolAnalyser.fixedPooledRuns)
       } else
         poolAnalyser.pooledRuns
     val depthNPool = DepthNPool(poolAnalyser.d, nlRuns, pool.qRels)

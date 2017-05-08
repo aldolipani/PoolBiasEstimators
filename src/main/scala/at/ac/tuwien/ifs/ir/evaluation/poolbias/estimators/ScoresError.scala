@@ -68,6 +68,27 @@ null, metric: String = null) {
     }).sum
   }
 
+  def relativeSystemRankError(testScores: List[Score], lRuns:List[Runs], pValues: Map[String, Double]): Int = {
+    def getPValue(runId1: String, runId2: String) = {
+      pValues.getOrElse(runId1 + runId2, pValues.get(runId2 + runId1).getOrElse(
+        pValues.get(runId2.toLowerCase() + runId1.toLowerCase()).getOrElse(
+          pValues.get(runId1.toLowerCase() + runId2.toLowerCase()).getOrElse({
+            println("Warning in systemRankError: " + runId1 + " " + runId2 + " doesn't exist!")
+            1d
+          }))))
+    }
+    testScores.map(s => {
+      val oR = findRank(trueScoresMap.get(s.runId).get, trueScores)
+      val newTrueScores = lRuns.map(runs => new Score(runs.id, TRECEval().computeMetric(s.metric, runs, s.qRels), s.metric, s.qRels))
+      val nR = findRank(s, newTrueScores.filter(_.runId != s.runId))
+      val nTrueScoresWithRank = withRank(newTrueScores).filter(e => e._1.runId != s.runId)
+      nTrueScoresWithRank.filter(swr =>
+        (nR <= swr._2 && swr._2 < oR) ||
+          (oR < swr._2 && swr._2 <= nR))
+        .filter(r => getPValue(s.runId, r._1.runId) < 0.05d).size
+    }).sum
+  }
+
   def systemRankError(testScores: List[Score], pValues: Map[String, Double]): Int = {
     def getPValue(runId1: String, runId2: String) = {
       pValues.getOrElse(runId1 + runId2, pValues.get(runId2 + runId1).getOrElse(
@@ -113,6 +134,13 @@ null, metric: String = null) {
       }
     }
     printReportError("RSRE", this.relativeSystemRankError(scores, scoreEstimator.pool.lRuns).toString)
+    if (pValuesDir != null) {
+      val pValuesFile = new File(pValuesDir, "pValues." + metric + ".csv")
+      if (pValuesFile.exists()) {
+        val pValues: Map[String, Double] = Source.fromFile(pValuesFile).getLines().map(_.split(",")).filter(_.size == 3).map(a => (a(0).replace("input.", "") + a(1).replace("input.", "") -> a(2).toDouble)).toMap
+        printReportError("RSRE*", this.relativeSystemRankError(scores, scoreEstimator.pool.lRuns, pValues) + "\tp<0.05")
+      }
+    }
     printReportError("KTauB", ("%1.4f" format round(this.kendallsCorrelation(scores))))
     println("")
   }
