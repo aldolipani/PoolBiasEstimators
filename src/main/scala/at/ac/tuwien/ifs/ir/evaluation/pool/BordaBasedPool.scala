@@ -1,6 +1,6 @@
 package at.ac.tuwien.ifs.ir.evaluation.pool
 
-import at.ac.tuwien.ifs.ir.model.{Document, QRels, Runs}
+import at.ac.tuwien.ifs.ir.model.{Document, QRels, RunRecord, Runs}
 import at.ac.tuwien.ifs.utils.Profiler
 
 import scala.annotation.tailrec
@@ -27,28 +27,11 @@ object BordaBasedPool {
 
   def apply(pD: Int, lRuns: List[Runs], gT: QRels) = new BordaBasedPool(pD, lRuns, gT)
 
-  def getPooledDocuments(topicSizes: Map[Int, Int], pRuns: List[Runs], qRels:QRels)(topicId: Int): Set[Document] = {
-    val unknownDocument = new Document("unknown")
+  def getPooledDocuments(nDs: Map[Int, Int], lRuns: List[Runs], qRels:QRels)(topicId: Int): Set[Document] = {
 
-    // runId# -> documents
-    val lrs: Map[String, List[Document]] =
-      pRuns.filter(_.selectByTopicId(topicId) != null).map(run =>
-        run.id -> run.selectByTopicId(topicId).runRecords.map(_.document)).toMap
-    // documents
-    val allDs: Set[Document] = lrs.values.flatten.toSet
+    def rank(rr:RunRecord, length:Int):Float = if(rr != null) -rr.rank else -length
 
-    def sumInt(n: Int): Int = (n * (n + 1)) / 2
-
-    def sumIntFromInt(n1: Int, n0: Int): Int = sumInt(n1) - sumInt(n0)
-
-    val nlrs: Map[String, Map[Document, Double]] = lrs.map(rs =>
-      (rs._1 -> {
-        rs._2.zipWithIndex.map(d => d._1 -> (allDs.size - d._2).toDouble).toMap +
-          (unknownDocument -> sumIntFromInt(allDs.size, allDs.size - rs._2.size).toDouble / (allDs.size - rs._2.size))}))
-
-    allDs.map(d => (d ->
-      nlrs.map(r => r._2.getOrElse(d, r._2(unknownDocument))).sum))
-      .toList.sortBy(e => -e._2).take(topicSizes(topicId)).map(_._1).toSet
-    }
+    NonAdaptiveBasedPool.getPooledAlsoNullDocumentsWithSum(rank, nDs, lRuns, qRels)(topicId)
+  }
 
 }

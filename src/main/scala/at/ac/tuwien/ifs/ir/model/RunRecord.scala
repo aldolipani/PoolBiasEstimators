@@ -9,6 +9,9 @@ class RunRecord(val iteration: String, val document: Document, val rank: Int, va
 }
 
 object RunRecord {
+
+  def apply(iteration: String, document: Document, rank: Int, score: Float) = new RunRecord(iteration, document, rank, score)
+
   def fromItems(arr: Array[String]): RunRecord = try {
     new RunRecord(arr(0), new Document(arr(1)), arr(2).toInt, arr(3).toFloat)
   } catch {

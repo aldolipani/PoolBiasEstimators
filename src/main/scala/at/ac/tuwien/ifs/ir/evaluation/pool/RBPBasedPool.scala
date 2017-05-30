@@ -79,7 +79,7 @@ object RBPBasedPool {
     def rbp(runId: String, topicId: Int, acc: Set[Document]) = {
       val run = mRuns(runId).selectByTopicId(topicId)
       run.runRecords.filter(rr => acc.contains(rr.document)).map(rr =>
-        if (qRels.getRel(topicId, rr.document.id) > 0) rbpw(rr.rank) else 0d).sum
+        if (qRels.getRel(topicId, rr.document) > 0) rbpw(rr.rank) else 0d).sum
     }
 
     def rbpResidual(runId: String, topicId: Int, acc: Set[Document]) = 1d - {

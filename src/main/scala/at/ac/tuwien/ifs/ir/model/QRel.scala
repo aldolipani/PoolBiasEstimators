@@ -4,6 +4,7 @@ package at.ac.tuwien.ifs.ir.model
  * Created by aldo on 10/10/14.
  */
 class QRel(val id: Int, val qrelRecords: List[QRelRecord]) {
+  lazy val mapQRelRecords = qrelRecords.map(qR => (qR.document -> qR)).toMap
   lazy val documentIDs = qrelRecords.map(qR => (qR.document.id -> qR.rel)).toMap
   lazy val documents = qrelRecords.map(qR => (qR.document -> qR.rel)).toMap
 
@@ -16,11 +17,10 @@ class QRel(val id: Int, val qrelRecords: List[QRelRecord]) {
   def containsDocumentId(id: String): Boolean = documentIDs.contains(id) //||
   //    (if (id.startsWith("ZF0")) documentIDs.contains(id.replace("ZF0", "ZF10")) || documentIDs.contains(id.replace("ZF0", "ZF20")) else false)
 
-  @deprecated
-  def getRel(idDocument: String): Int = documentIDs.getOrElse(idDocument, -1)
-
   def getRel(document: Document): Int = documents.getOrElse(document, -1)
   //if (idDocument.startsWith("ZF0")) documentIDs.getOrElse(idDocument.replace("ZF0", "ZF10"), documentIDs.getOrElse(idDocument.replace("ZF0", "ZF20"), -1)) else -1)
+
+  def getQRelRecord(document: Document) = mapQRelRecords(document)
 }
 
 object QRel {

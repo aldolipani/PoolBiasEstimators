@@ -27,7 +27,7 @@ class LipaniEstimatorV3(pool: Pool, metric: String, descs: Descs = null) extends
     val sru = M(ru)
     val asru = AM(ru)
     val kru = 1 - (sru + asru)
-    val vs = pool.lRuns.par.map(rp => {
+    val vs = pool.lRuns.map(rp => {
       val nrp = rp ◦ ru
       val δsrp = M(nrp) - M(rp)
       val δasrp = AM(nrp) - AM(rp)
@@ -59,7 +59,7 @@ class LipaniEstimatorV3(pool: Pool, metric: String, descs: Descs = null) extends
     val sru = M(ru)
     val asru = AM(ru)
     val kru = 1 - (sru + asru)
-    val vs = pool.lRuns.par.map(rp => {
+    val vs = pool.lRuns.map(rp => {
       val nrp = rp ◦ ru
       val δsrp = M(nrp) - M(rp)
       val δasrp = AM(nrp) - AM(rp)

@@ -1,6 +1,6 @@
 package at.ac.tuwien.ifs.ir.evaluation.pool
 
-import at.ac.tuwien.ifs.ir.model.{Document, QRels, Runs}
+import at.ac.tuwien.ifs.ir.model._
 
 import scala.annotation.tailrec
 import scala.util.Random
@@ -23,61 +23,45 @@ class MTFBasedPool(poolSize: Int, lRuns: List[Runs], gT: QRels) extends FixedSiz
 
 object MTFBasedPool {
 
-  val rnd = new Random(1234)
-
   def apply(poolSize: Int, lRuns: List[Runs], gT: QRels) = new MTFBasedPool(poolSize, lRuns, gT)
 
   def getName(poolSize: Int) = "mtfbased_" + poolSize
 
-  def getPooledDocuments(nDs: Map[Int, Int], pRuns: List[Runs], qRels: QRels)(topicId:Int): Set[Document] = {
+  def getPooledDocuments(nDs: Map[Int, Int], pRuns: List[Runs], qRels: QRels)(topicId: Int): Set[Document] = {
 
-    val qRuns = pRuns.filter(_.selectByTopicId(topicId) != null).map(r => new Runs(r.id, List(r.selectByTopicId(topicId))))
+    val oRs: Map[Int, List[Document]] = FixedSizePool.getSimplifiedLRuns(topicId, pRuns)
 
-    // runId# -> documents
-    lazy val lrs: Map[Int, List[Document]] =
-      pRuns
-        .filter(_.selectByTopicId(topicId) != null).zipWithIndex
-        .map(run => run._2 -> run._1.selectByTopicId(topicId).runRecords.map(_.document))
-        .filter(_._2.nonEmpty).toMap
-
-    val maxSizeRanks = lrs.maxBy(_._2.size)._2.size
-
-    // initialization
-    val prs: Map[Int, Int] = lrs.mapValues(_ => maxSizeRanks)
-
-    def getDocument(i: Int, lrs: Map[Int, List[Document]], prs: Map[Int, Int], acc: Set[Document]): Set[Document] = {
-      if (acc.size == nDs(topicId) || lrs.isEmpty)
+    @tailrec def getDocument(onr: Int, cQRel: QRel, rs: Map[Int, List[Document]], acc: Set[Document] = Set()): Set[Document] = {
+      if (acc.size == nDs(topicId) || rs.isEmpty) {
         acc
-      else {
-        // selection
-        val ni =
-          if (i == -1) {
-            val maxPrVal = prs.maxBy(_._2)._2 // find max priority
-            val maxPrs = prs.filter(_._2 == maxPrVal) // get all items with max priority
-            val keysMaxPrs = maxPrs.keys.toList.sorted // get their keys and sort them
-            keysMaxPrs(rnd.nextInt(keysMaxPrs.size)) // this is my new index
-          } else i
-
-        // update
-        val doc = lrs(ni).head
-        val nlrs = lrs + (ni -> lrs(ni).drop(1))
-
-        if (qRels.getRel(topicId, doc) > 0) {
-          if(nlrs(ni).nonEmpty)
-            getDocument(ni, nlrs, prs, acc + doc)
+      } else {
+        //select arm
+        val nr =
+          if (onr < 0)
+            FixedSizePool.getNonDeterministicMaxObject(
+              oRs.filter(r => rs.contains(r._1)).map(r => (r._1,
+                -r._2.take(oRs(r._1).size - rs(r._1).size).count(d => cQRel.getRel(d) == 0)
+              )).toList)
           else
-            getDocument(-1, nlrs - ni, prs - ni, acc + doc)
-        } else {
-          if(nlrs(ni).nonEmpty) {
-            val nprs = prs + (ni -> (prs(ni) - 1))
-            getDocument(-1, nlrs, nprs, acc + doc)
-          } else
-            getDocument(-1, nlrs - ni, prs - ni, acc + doc)
-        }
+            onr
+
+        //judge document
+        val doc = rs(nr).head
+        val rel = if (cQRel.getRel(doc) < 0) qRels.getRel(topicId, doc) else cQRel.getRel(doc)
+
+        getDocument(
+          if (rel > 0 && rs(nr).size > 1) nr else -1,
+          if (cQRel.getRel(doc) < 0)
+            new QRel(cQRel.id, cQRel.qrelRecords :+ QRelRecord("Q0", doc, rel))
+          else
+            cQRel,
+          FixedSizePool.updateSimplifiedLRuns(rs, nr),
+          acc + doc
+        )
       }
     }
-    getDocument(-1, lrs, prs, Set())
 
+    getDocument(-1, new QRel(topicId, List()), oRs)
   }
 
 }

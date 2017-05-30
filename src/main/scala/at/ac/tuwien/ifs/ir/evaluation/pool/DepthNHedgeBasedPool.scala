@@ -5,30 +5,29 @@ import at.ac.tuwien.ifs.ir.model._
 import scala.util.Random
 
 /**
-  * Hedge Based Pool
-  * Created by aldo on 25/07/16.
+  * Created by aldo on 25/05/2017.
   */
-class HedgeBasedPool(beta: Double, poolSize: Int, lRuns: List[Runs], gT: QRels) extends FixedSizePool(poolSize, lRuns, gT) {
+class DepthNHedgeBasedPool(depth: Int, beta: Double, poolSize: Int, lRuns: List[Runs], gT: QRels) extends FixedSizePool(poolSize, lRuns, gT) {
 
-  override def getName = HedgeBasedPool.getName(beta, poolSize)
+  override def getName = DepthNHedgeBasedPool.getName(depth, beta, poolSize)
 
-  override lazy val qRels: QRels = PoolConverter.repoolToHedgeBased(beta, poolSize, lRuns, gT)
+  override lazy val qRels: QRels = PoolConverter.repoolToDepthNHedgeBased(depth, beta, poolSize, lRuns, gT)
 
-  override def getPooledDocuments(topicId: Int): Set[Document] = HedgeBasedPool.getPooledDocuments(beta, topicSizes, lRuns, gT)(topicId)
+  override def getPooledDocuments(topicId: Int): Set[Document] = DepthNHedgeBasedPool.getPooledDocuments(depth, beta, topicSizes, lRuns, gT)(topicId)
 
-  override def getNewInstance(lRuns: List[Runs]): Pool = HedgeBasedPool(beta, poolSize, lRuns, gT)
+  override def getNewInstance(lRuns: List[Runs]): Pool = DepthNHedgeBasedPool(depth, beta, poolSize, lRuns, gT)
 
 }
 
-object HedgeBasedPool {
+object DepthNHedgeBasedPool {
 
   val rnd = new Random(1234);
 
-  def apply(beta: Double, poolSize: Int, lRuns: List[Runs], gT: QRels) = new HedgeBasedPool(beta, poolSize, lRuns, gT)
+  def apply(depth: Int, beta: Double, poolSize: Int, lRuns: List[Runs], gT: QRels) = new DepthNHedgeBasedPool(depth, beta, poolSize, lRuns, gT)
 
-  def getName(beta: Double, poolSize: Int) = "hedgebased_" + beta + ":" + poolSize
+  def getName(depth: Int, beta: Double, poolSize: Int) = "hedgebased_" + depth + ":" + beta + ":" + poolSize
 
-  def getPooledDocuments(beta: Double, nDs: Map[Int, Int], pRuns: List[Runs], qRels: QRels)(topicId: Int): Set[Document] = {
+  def getPooledDocuments(depth: Int, beta: Double, nDs: Map[Int, Int], pRuns: List[Runs], qRels: QRels)(topicId: Int): Set[Document] = {
 
     val oRs: Map[Int, Map[Document, RunRecord]] = FixedSizePool.getNonNullLRuns(topicId, pRuns)
       .zipWithIndex.map(r => (r._2 ->
@@ -83,7 +82,12 @@ object HedgeBasedPool {
       }
     }
 
-    getDocuments(oDocs)
+    val docs = DepthNPool.getPooledDocuments(depth, pRuns, qRels)(topicId)
+    if (docs.size > nDs(topicId)) {
+      throw new InstantiationException("The selected poolSize (" + nDs.values.sum + ") is not sufficient for this pooling strategy")
+    }
+    val qRel = new QRel(topicId, docs.map(doc => QRelRecord("Q0", doc, qRels.getRel(topicId, doc))).toList)
+    getDocuments(oDocs -- docs, qRel, docs)
   }
-
 }
+

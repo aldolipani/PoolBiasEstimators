@@ -34,13 +34,13 @@ class TRECEval(tempDir: String = ".") {
   def rbpw_p(p: Float, rank: Int): Double = (1d - p) * Math.pow(p, rank - 1)
 
   def rbp_p(p: Float, run: Run, qRel: QRel): Double =
-    run.runRecords.map(rR => if (qRel.getRel(rR.document.id) > 0)
+    run.runRecords.map(rR => if (qRel.getRel(rR.document) > 0)
       rbpw_p(p, rR.rank) else 0d).sum
 
   def ap(run: Run, qRel: QRel): Double = {
       if (qRel.sizeRel != 0)
         run.runRecords.map(rR =>
-          if (qRel.getRel(rR.document.id) > 0) {
+          if (qRel.getRel(rR.document) > 0) {
             p_n(rR.rank, run, qRel)
           } else 0d).sum / qRel.sizeRel
       else
@@ -48,8 +48,8 @@ class TRECEval(tempDir: String = ".") {
   }
 
   def dcg(run: Run, qRel: QRel): Double =
-    run.runRecords.map(rR => if (qRel.getRel(rR.document.id) > 0)
-      qRel.getRel(rR.document.id).toDouble / Math.log(rR.rank + 1) * Math.log(2) else 0d).sum
+    run.runRecords.map(rR => if (qRel.getRel(rR.document) > 0)
+      qRel.getRel(rR.document).toDouble / Math.log(rR.rank + 1) * Math.log(2) else 0d).sum
 
   def idcg(qRel: QRel): Double =
     if(qRel.sizeRel != 0)
@@ -91,7 +91,7 @@ class TRECEval(tempDir: String = ".") {
     num_ret_rel(run, qRel).toDouble / n
 
   def num_ret_rel(run: Run, qRel: QRel): Int =
-    run.runRecords.map(rR => if (qRel.getRel(rR.document.id) > 0) 1 else 0).sum
+    run.runRecords.map(rR => if (qRel.getRel(rR.document) > 0) 1 else 0).sum
 
   def cut(n: Int, run: Run): Run = new Run(run.id, run.runRecords.take(n))
 

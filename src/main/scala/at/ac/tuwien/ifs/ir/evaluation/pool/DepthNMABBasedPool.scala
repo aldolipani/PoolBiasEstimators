@@ -8,29 +8,29 @@ import scala.util.Random
 
 /**
   * Multi-Armed Bandits Based Pool
-  * Created by aldo on 25/07/16.
+  * Created by aldo on 23/05/17.
   */
-class MABBasedPool(m: String, c1: Double, c2: Double, sizePool: Int, lRuns: List[Runs], gT: QRels) extends FixedSizePool(sizePool, lRuns, gT) {
+class DepthNMABBasedPool(m: String, depth:Int, c1: Double, c2: Double, sizePool: Int, lRuns: List[Runs], gT: QRels) extends FixedSizePool(sizePool, lRuns, gT) {
 
-  override lazy val qRels: QRels = PoolConverter.repoolToMABBased(m, c1, c2, sizePool, lRuns, gT)
+  override lazy val qRels: QRels = PoolConverter.repoolToDepthNMABBased(m, depth, c1, c2, sizePool, lRuns, gT)
 
-  override def getName = MABBasedPool.getName(m, c1, c2, sizePool)
+  override def getName = DepthNMABBasedPool.getName(m, depth, c1, c2, sizePool)
 
-  override def getPooledDocuments(topicId: Int): Set[Document] = MABBasedPool.getPooledDocuments(m, c1, c2, topicSizes, lRuns, gT)(topicId)
+  override def getPooledDocuments(topicId: Int): Set[Document] = DepthNMABBasedPool.getPooledDocuments(m, depth, c1, c2, topicSizes, lRuns, gT)(topicId)
 
   override def getNewInstance(lRuns: List[Runs]): Pool = MABBasedPool(m, c1, c2, sizePool, lRuns, gT)
 
 }
 
-object MABBasedPool {
+object DepthNMABBasedPool {
 
   val rnd = new Random(1234)
 
-  def getName(m: String, c1: Double, c2: Double, sizePool: Int) = "MABBased_" + m + ":" + c1 + ":" + c2 + ":" + sizePool
+  def getName(m: String, depth:Int, c1: Double, c2: Double, sizePool: Int) = "MABBased_" + m + ":" + depth + ":" + c1 + ":" + c2 + ":" + sizePool
 
-  def apply(m: String, c1: Double, c2: Double, pD: Int, lRuns: List[Runs], gT: QRels) = new MABBasedPool(m, c1, c2, pD, lRuns, gT)
+  def apply(m: String, depth:Int, c1: Double, c2: Double, pD: Int, lRuns: List[Runs], gT: QRels) = new DepthNMABBasedPool(m, depth, c1, c2, pD, lRuns, gT)
 
-  def getPooledDocuments(m: String, c1: Double, c2: Double, nDs: Map[Int, Int], pRuns: List[Runs], qRels: QRels)(topicId: Int): Set[Document] = {
+  def getPooledDocuments(m: String, depth:Int, c1: Double, c2: Double, nDs: Map[Int, Int], pRuns: List[Runs], qRels: QRels)(topicId: Int): Set[Document] = {
 
     val oRs: Map[Int, List[Document]] = FixedSizePool.getSimplifiedLRuns(topicId, pRuns)
 
@@ -50,7 +50,12 @@ object MABBasedPool {
         }
       }
 
-      getDocuments(oRs)
+      val docs = DepthNPool.getPooledDocuments(depth, pRuns, qRels)(topicId)
+      if(docs.size > nDs(topicId)){
+        throw new InstantiationException("The selected poolSize (" + nDs.values.sum + ") is not sufficient for this pooling strategy")
+      }
+      val nORs = oRs.map(e => e._1 -> oRs(e._1).drop(depth)).filter(_._2.nonEmpty)
+      getDocuments(nORs, docs)
     }
 
     def greedy(c1: Double, c2: Double): Set[Document] = {
@@ -71,11 +76,10 @@ object MABBasedPool {
             if (rnd.nextDouble() < Math.min(1d, (c1 * oRs.size) / (c2 * c2 * n)))
               rnd.shuffle(rs.keys.toList).head
             else
-              FixedSizePool.getNonDeterministicMaxObject(
-                oRs.filter(r => rs.contains(r._1)).map(r => (r._1, {
-                  val ds = r._2.take(oRs(r._1).size - rs(r._1).size)
-                  p(ds, cQRel)
-                })).toList)
+              oRs.filter(r => rs.contains(r._1)).map(r => (r._1, {
+                val ds = r._2.take(oRs(r._1).size - rs(r._1).size)
+                p(ds, cQRel) + rnd.nextDouble() / (cQRel.size * oRs.size)
+              })).maxBy(_._2)._1
 
           // judge doc
           val doc = rs(nr).head
@@ -83,7 +87,7 @@ object MABBasedPool {
 
           getDocuments(
             FixedSizePool.updateSimplifiedLRuns(rs, nr),
-            if (cQRel.getRel(doc) < 0)
+            if(cQRel.getRel(doc) < 0)
               new QRel(cQRel.id, cQRel.qrelRecords :+ QRelRecord("Q0", doc, rel))
             else
               cQRel,
@@ -92,7 +96,13 @@ object MABBasedPool {
         }
       }
 
-      getDocuments(oRs)
+      val docs = DepthNPool.getPooledDocuments(depth, pRuns, qRels)(topicId)
+      if(docs.size > nDs(topicId)){
+        throw new InstantiationException("The selected poolSize (" + nDs.values.sum + ") is not sufficient for this pooling strategy")
+      }
+      val qRel = new QRel(topicId, docs.map(doc => QRelRecord("Q0", doc, qRels.getRel(topicId, doc))).toList)
+      val nORs = oRs.map(e => e._1 -> oRs(e._1).drop(depth)).filter(_._2.nonEmpty)
+      getDocuments(nORs, qRel, docs)
     }
 
     def ucb1Tuned(): Set[Document] = {
@@ -106,28 +116,27 @@ object MABBasedPool {
             if (!rs.forall(r => oRs(r._1).size - r._2.size > 0))
               rs.filter(r => oRs(r._1).size - r._2.size == 0).head._1
             else
-              FixedSizePool.getNonDeterministicMaxObject(
-                oRs.filter(r => rs.contains(r._1)).map(r => (r._1, {
-                  // get played documents
-                  val ds = r._2.take(oRs(r._1).size - rs(r._1).size)
-                  // get sample rewards
-                  val xs: List[Double] = ds.tail.foldLeft(List(cQRel.getRel(ds.head) / 1d))((acc, d) => {
-                    acc :+ (acc.last * acc.size + cQRel.getRel(d)) / (acc.size + 1)
-                  })
-                  // compute average
-                  val avg = xs.sum / xs.size
-                  // compute variance
-                  val _var = xs.map(x => x * x).sum / xs.size - avg * avg
-                  // compute and return ucb1-tuned weight
-                  avg + Math.sqrt(Math.log(n) / xs.size * Math.min(0.25d, _var + Math.sqrt(2 * n / xs.size)))
-                })).toList)
+              oRs.filter(r => rs.contains(r._1)).map(r => (r._1, {
+                // get played documents
+                val ds = r._2.take(oRs(r._1).size - rs(r._1).size)
+                // get sample rewards
+                val xs: List[Double] = ds.tail.foldLeft(List(cQRel.getRel(ds.head) / 1d))((acc, d) => {
+                  acc :+ (acc.last * acc.size + cQRel.getRel(d)) / (acc.size + 1)
+                })
+                // compute average
+                val avg = xs.sum / xs.size
+                // compute variance
+                val _var = xs.map(x => x * x).sum / xs.size - avg * avg
+                // compute and return ucb1-tuned weight
+                avg + Math.sqrt(Math.log(n) / xs.size * Math.min(0.25d, _var + Math.sqrt(2 * n / xs.size))) + rnd.nextDouble() / (cQRel.size * oRs.size)
+              })).maxBy(_._2)._1
 
           val doc = rs(nr).head
           val rel = if (cQRel.getRel(doc) < 0) qRels.getRel(topicId, doc) else cQRel.getRel(doc)
 
           getDocuments(
             FixedSizePool.updateSimplifiedLRuns(rs, nr),
-            if (cQRel.getRel(doc) < 0)
+            if(cQRel.getRel(doc) < 0)
               new QRel(cQRel.id, cQRel.qrelRecords :+ QRelRecord("Q0", doc, rel))
             else
               cQRel,
@@ -136,7 +145,13 @@ object MABBasedPool {
         }
       }
 
-      getDocuments(oRs)
+      val docs = DepthNPool.getPooledDocuments(depth, pRuns, qRels)(topicId)
+      if(docs.size > nDs(topicId)){
+        throw new InstantiationException("The selected poolSize (" + nDs.values.sum + ") is not sufficient for this pooling strategy")
+      }
+      val qRel = new QRel(topicId, docs.map(doc => QRelRecord("Q0", doc, qRels.getRel(topicId, doc))).toList)
+      val nORs = oRs.map(e => e._1 -> oRs(e._1).drop(depth)).filter(_._2.nonEmpty)
+      getDocuments(nORs, qRel, docs)
     }
 
     def beta(): Set[Document] = {
@@ -146,11 +161,11 @@ object MABBasedPool {
           acc
         else {
           // select arm
-          val nr = FixedSizePool.getNonDeterministicMaxObject(
+          val nr =
             oRs.filter(r => rs.contains(r._1)).map(r => (r._1, {
               val ds = r._2.take(oRs(r._1).size - rs(r._1).size)
               new BetaDistribution(1d + ds.count(d => cQRel.getRel(d) > 0), 1d + ds.count(d => cQRel.getRel(d) == 0)).sample()
-            })).toList)
+            })).maxBy(_._2)._1
 
           // judge doc
           val doc = rs(nr).head
@@ -158,7 +173,7 @@ object MABBasedPool {
 
           getDocuments(
             FixedSizePool.updateSimplifiedLRuns(rs, nr),
-            if (cQRel.getRel(doc) < 0)
+            if(cQRel.getRel(doc) < 0)
               new QRel(cQRel.id, cQRel.qrelRecords :+ QRelRecord("Q0", doc, rel))
             else
               cQRel,
@@ -166,7 +181,13 @@ object MABBasedPool {
         }
       }
 
-      getDocuments(oRs)
+      val docs = DepthNPool.getPooledDocuments(depth, pRuns, qRels)(topicId)
+      if(docs.size > nDs(topicId)){
+        throw new InstantiationException("The selected poolSize (" + nDs.values.sum + ") is not sufficient for this pooling strategy")
+      }
+      val qRel = new QRel(topicId, docs.map(doc => QRelRecord("Q0", doc, qRels.getRel(topicId, doc))).toList)
+      val nORs = oRs.map(e => e._1 -> oRs(e._1).drop(depth)).filter(_._2.nonEmpty)
+      getDocuments(nORs, qRel, docs)
     }
 
     def maxMean(): Set[Document] = {
@@ -176,11 +197,11 @@ object MABBasedPool {
           acc
         else {
           // select arm
-          val nr = FixedSizePool.getNonDeterministicMaxObject(
+          val nr =
             oRs.filter(r => rs.contains(r._1)).map(r => (r._1, {
               val ds = r._2.take(oRs(r._1).size - rs(r._1).size)
-              (1d + ds.count(d => cQRel.getRel(d) > 0)) / (2d + ds.count(d => cQRel.getRel(d) == 0))
-            })).toList)
+              (1d + ds.count(d => cQRel.getRel(d) > 0)) / (2d + ds.count(d => cQRel.getRel(d) == 0)) + rnd.nextDouble() / (cQRel.size * oRs.size)
+            })).maxBy(_._2)._1
 
           // judge doc
           val doc = rs(nr).head
@@ -188,7 +209,7 @@ object MABBasedPool {
 
           getDocuments(
             FixedSizePool.updateSimplifiedLRuns(rs, nr),
-            if (cQRel.getRel(doc) < 0)
+            if(cQRel.getRel(doc) < 0)
               new QRel(cQRel.id, cQRel.qrelRecords :+ QRelRecord("Q0", doc, rel))
             else
               cQRel,
@@ -196,7 +217,13 @@ object MABBasedPool {
         }
       }
 
-      getDocuments(oRs)
+      val docs = DepthNPool.getPooledDocuments(depth, pRuns, qRels)(topicId)
+      if(docs.size > nDs(topicId)){
+        throw new InstantiationException("The selected poolSize (" + nDs.values.sum + ") is not sufficient for this pooling strategy")
+      }
+      val qRel = new QRel(topicId, docs.map(doc => QRelRecord("Q0", doc, qRels.getRel(topicId, doc))).toList)
+      val nORs = oRs.map(e => e._1 -> oRs(e._1).drop(depth)).filter(_._2.nonEmpty)
+      getDocuments(nORs, qRel, docs)
     }
 
     if (m == "random")

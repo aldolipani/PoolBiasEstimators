@@ -23,7 +23,7 @@ object Main extends App {
     val onlyRuns, onlyAnalysis, onlyErrors, all = Value
   }
 
-  case class Config(command:String = "biasAnalysis",
+  case class Config(command:String = "biasAnalysis",      //generatePool
                     trecRelFile: File = null,
                     trecRunsDir: File = null,
                     trecRunsFile: File = null,
@@ -37,7 +37,10 @@ object Main extends App {
                     metrics:String = "P_*,recall_*",
                     sizeRuns:Int = 0,
                     poolAnalyzerType:String = "MODE",
-                    discoverPooledRuns: Boolean = false)
+                    discoverPooledRuns: Boolean = false,  //generatePool
+                    interactivePool: Boolean = true,     //generatePool
+                    httpPort: Int = 3737                  //generatePool
+                   )
 
   override def main(args: Array[String]){
     val parser = new scopt.OptionParser[Config]("pool_bias_estimators") {
@@ -103,7 +106,15 @@ object Main extends App {
       case Some(config) => {
         if(config.command == "generatePool"){
           val generatePool = GeneratePool()
-          generatePool.generate(config.trecRelFile, config.trecRunsDir, config.toPool, config.sizeRuns, config.discoverPooledRuns, config.poolAnalyzerType)
+          generatePool.generate(
+            config.trecRelFile,
+            config.trecRunsDir,
+            config.toPool,
+            config.sizeRuns,
+            config.discoverPooledRuns,
+            config.poolAnalyzerType,
+            config.interactivePool,
+            config.httpPort )
         } else if(false){// TODO
           val analysis = Analysis(config.metrics, config.estimators)
           analysis.analyzePool(config.trecRelFile, config.trecRunsDir, config.descRunsFile, config.pValuesDir, config.l1xo, config.top75Runs, config.toPool, config.poolAnalyzerType)

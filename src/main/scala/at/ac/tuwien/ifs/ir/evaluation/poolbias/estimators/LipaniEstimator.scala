@@ -27,7 +27,7 @@ class LipaniEstimator(pool: Pool, metric: String, descs: Descs = null) extends S
     val kru = 1 - (sru + asru)
     if(kru == 0) return 0d
 
-    val vs = pool.lRuns.par.map(rp => {
+    val vs = pool.lRuns.map(rp => {
       val nrp = rp ◦ ru
       val δsrp = M(nrp) - M(rp)
       val δasrp = AM(nrp) - AM(rp)

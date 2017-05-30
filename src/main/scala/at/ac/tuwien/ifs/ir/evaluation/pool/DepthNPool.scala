@@ -12,7 +12,7 @@ class DepthNPool(val n: Int, lRuns: List[Runs], gT: QRels) extends Pool(lRuns, g
   override lazy val qRels:QRels = PoolConverter.repoolToDepthN(n, lRuns, gT)
 
   override def getPooledDocuments(topicId: Int): Set[Document] = {
-    DepthNPool.getPooledDocuments(n, lRuns)(topicId)
+    DepthNPool.getPooledDocuments(n, lRuns, gT)(topicId)
   }
 
   override def getNewInstance(lRuns: List[Runs]):Pool = DepthNPool(n, lRuns, gT)
@@ -24,11 +24,12 @@ object DepthNPool {
 
   def apply(n:Int, lRuns:List[Runs], qRels:QRels) = new DepthNPool(n, lRuns, qRels)
 
-  def getPooledDocuments(n: Int, lRuns: List[Runs])(topicId: Int): Set[Document] =
-    lRuns.flatMap(l => {
+  def getPooledDocuments(n: Int, lRuns: List[Runs], qRels:QRels)(topicId: Int): Set[Document] =
+    PoolAnalyzer.fixRuns(lRuns, qRels).flatMap(l => {
       if (l.selectByTopicId(topicId) == null)
         Nil
       else
         l.selectByTopicId(topicId).runRecords.take(n).map(_.document)
     }).toSet
+
 }

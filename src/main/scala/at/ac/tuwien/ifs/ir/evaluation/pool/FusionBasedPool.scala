@@ -1,13 +1,14 @@
 package at.ac.tuwien.ifs.ir.evaluation.pool
 
-import at.ac.tuwien.ifs.ir.model.{Document, QRels, Runs}
+import at.ac.tuwien.ifs.ir.evaluation.pool.HedgeBasedPool.rnd
+import at.ac.tuwien.ifs.ir.model._
 
-import scala.collection.parallel.{ParSeq, ParMap}
+import scala.collection.parallel.{ParMap, ParSeq}
 
 /**
   * Created by aldo on 31/08/16.
   */
-class FusionBasedPool(method:String, poolSize: Int, lRuns: List[Runs], gT: QRels) extends FixedSizePool(poolSize, lRuns, gT) {
+class FusionBasedPool(method: String, poolSize: Int, lRuns: List[Runs], gT: QRels) extends FixedSizePool(poolSize, lRuns, gT) {
 
   override def getName = FusionBasedPool.getName(method, poolSize)
 
@@ -23,80 +24,65 @@ object FusionBasedPool {
 
   def apply(method: String, poolSize: Int, lRuns: List[Runs], gT: QRels) = new FusionBasedPool(method, poolSize, lRuns, gT)
 
-  def getName(method:String, poolSize:Int) = "fusionbased_" + method + ":" + poolSize
+  def getName(method: String, poolSize: Int) = "fusionbased_" + method + ":" + poolSize
 
-  def getPooledDocuments(method: String, topicsSizes: Map[Int, Int], lRuns: List[Runs], qRels: QRels)(topicId: Int): Set[Document] = {
+  def getPooledDocuments(method: String, nDs: Map[Int, Int], lRuns: List[Runs], qRels: QRels)(topicId: Int): Set[Document] = {
 
-    def normalize(ls:List[(Document, Float)]): List[(Document, Float)] ={
-      if(ls.nonEmpty){
-        val max = ls.maxBy(_._2)._2
-        val min = ls.minBy(_._2)._2
-        if(max != min) {
-          return ls.map(e => (e._1, (e._2 - min) / (max - min)))
+    def normalize(rr: List[RunRecord]): List[RunRecord] = {
+      if (rr.nonEmpty) {
+        val max = rr.maxBy(_.score).score
+        val min = rr.minBy(_.score).score
+        if (max != min) {
+          rr.map(e => RunRecord(e.iteration, e.document, e.rank, (e.score - min) / (max - min)))
+        } else {
+          rr
         }
+      } else {
+        rr
       }
-      ls
     }
 
-    val ldvs: Map[Document, Seq[Float]] =
-      lRuns.flatMap(rs => {
-        val dss = rs.selectByTopicIdOrNil(topicId).runRecords.map(e => (e.document, e.score))
-        normalize(dss)
-      }).groupBy(_._1).mapValues(vs => vs.map(_._2))
+    val nLRuns = lRuns.filter(_.selectByTopicId(topicId) != null).map(runs => {
+      val run = runs.selectByTopicId(topicId)
+      new Runs(runs.id, List(new Run(run.id, normalize(run.runRecords))))
+    })
 
-    def min(l:Seq[Float]):Float =
-      if(l.isEmpty)
-        0f
-      else
-        l.min
+    def w(rr: RunRecord) = rr.score
 
-    def max(l:Seq[Float]):Float =
-      if(l.isEmpty)
-        0f
-      else
-        l.max
+    def min(l: Seq[Float]): Float =
+      l.min
 
-    def sum(l:Seq[Float]):Float =
-      if(l.isEmpty)
-        0f
-      else
-        l.sum
+    def max(l: Seq[Float]): Float =
+      l.max
 
-    def anz(l:Seq[Float]):Float =
-      if(l.size == 0)
-        0f
-      else
-        sum(l) / l.size
+    def sum(l: Seq[Float]): Float =
+      l.sum
 
-    def mnz(l:Seq[Float]) = sum(l) * l.size
+    def anz(l: Seq[Float]): Float =
+      sum(l) / l.size
 
-    def med(l:Seq[Float]) = {
-      if(l.size == 0)
-        0f
-      else if(l.size % 2 == 0) {
-        val i = l.size / 2
-        l(i-1)/2 + l(i)/2
-      }else
-        l((l.size - 1)/2)
+    def mnz(l: Seq[Float]): Float =
+      sum(l) * l.size
+
+    def med(l: Seq[Float]) = {
+      val sl = l.sorted
+      if (sl.size % 2 == 0) {
+        val i = sl.size / 2
+        sl(i - 1) / 2 + sl(i) / 2
+      } else
+        sl((sl.size - 1) / 2)
     }
 
-    def getDocuments(f:(Seq[Float]) => Float): Set[Document] =
-      ldvs.mapValues(vs => f(vs)).toList.sortBy(- _._2).take(topicsSizes(topicId)).map(_._1).toSet
-
-    if(method == "combmin")
-      getDocuments(min)
-    else if(method == "combmax")
-      getDocuments(max)
-    else if(method == "combsum")
-      getDocuments(sum)
-    else if(method == "combanz")
-      getDocuments(anz)
-    else if(method == "combmnz")
-      getDocuments(mnz)
-    else if(method == "combmed")
-      getDocuments(med)
-    else
-      throw new Exception("Method " + method + " not recognized!")
+    NonAdaptiveBasedPool.getPooledDocumentsWithStat(w,
+      method match {
+        case "combmin" => min
+        case "combmax" => max
+        case "combsum" => sum
+        case "combanz" => anz
+        case "combmnz" => mnz
+        case "combmed" => med
+        case _ => throw new Exception("Method " + method + " not recognized!")
+      }, nDs, nLRuns, qRels)(topicId)
   }
 
 }

@@ -18,9 +18,6 @@ class QRels(val id: String, val qRels: Seq[QRel]) {
 
   override def toString: String = qRels.sortBy(_.id)mkString("\n")
 
-  @deprecated
-  def getRel(idTopic: Int, idDocument: String) = topicQRels(idTopic).getRel(idDocument)
-
   def getRel(idTopic: Int, document: Document) = topicQRels(idTopic).getRel(document)
 
   lazy val inverse = new QRels("inv" + id, {
@@ -32,6 +29,8 @@ class QRels(val id: String, val qRels: Seq[QRel]) {
             if (qRR.rel == 0) 1 else 0)))
     })
   })
+
+  def complete(qRelId:Int) = {}
 }
 
 object QRels {

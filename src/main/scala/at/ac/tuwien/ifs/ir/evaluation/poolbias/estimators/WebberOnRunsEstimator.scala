@@ -26,7 +26,7 @@ class WebberOnRunsEstimator(pool:Pool, metric: String, descs: Descs = null, l1xo
       lRuns.filterNot(_.id == ru.id)
 
     val sru = M(ru)
-    val as = pool.lRuns.par.map(nRun => {
+    val as = pool.lRuns.map(nRun => {
       val nRp =
         if(l1xo == L1xo.organization)
           filterOrganization(nRun, pool.lRuns)

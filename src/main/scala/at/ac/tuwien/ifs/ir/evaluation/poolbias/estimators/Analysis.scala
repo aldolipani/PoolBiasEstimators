@@ -47,7 +47,7 @@ class Analysis(val metrics:List[String], val estimators:List[String]) extends Co
 
     val nPool = PoolConverter.to(toPool, depthNPool)
     if(toPool!="") {
-      printNewPoolProperties(nPool, poolAnalyzerType)
+      printNewPoolProperties(nPool, "min_depth")
       printCrossPoolProperties(depthNPool, nPool)
     }
 
@@ -141,7 +141,7 @@ class Analysis(val metrics:List[String], val estimators:List[String]) extends Co
     //*****
     val nPool = PoolConverter.to(toPool, depthNPool)
     if(toPool!="") {
-      printNewPoolProperties(nPool, poolAnalyzerType)
+      printNewPoolProperties(nPool, "min_depth")
       printCrossPoolProperties(depthNPool, nPool)
     }
 
@@ -372,7 +372,7 @@ class Analysis(val metrics:List[String], val estimators:List[String]) extends Co
   private def printNewPoolProperties(pool: Pool, poolAnalyzerType: String) = {
     def printPoolProperty[A](name:String, value:A) = System.out.format("%-15s\t%s\n", name, value.toString)
     val poolAnalyser = PoolAnalyzer(pool, poolAnalyzerType)
-    println("Pool Properties")
+    println("Pool Properties: " + poolAnalyzerType)
     printPoolProperty("depth_of_pool", poolAnalyser.d)
     printPoolProperty("num_runs", poolAnalyser.pool.lRuns.size)
     printPoolProperty("num_pooled_runs", poolAnalyser.pooledRuns.size)

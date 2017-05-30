@@ -23,7 +23,7 @@ class LipaniEstimatorV2QB(pool: Pool, metric: String, descs: Descs = null, D:Int
     val kru = 1d - (sru + asru)
     if(kru == 0d) return 0d
 
-    val vs = lPool.lRuns.par.map(rp => {
+    val vs = lPool.lRuns.map(rp => {
       val nrp = rp ◦ ru
       val δsrp = M(nrp) - M(rp)
       val δasrp = AM(nrp) - AM(rp)
@@ -65,7 +65,7 @@ class LipaniEstimatorV2QB(pool: Pool, metric: String, descs: Descs = null, D:Int
       ku
       ) / C
     val kru = 1d - (sru + asru)
-    val vs = pool.lRuns.par.map(rp => {
+    val vs = pool.lRuns.map(rp => {
       val nrp = rp ◦ ru
       val nQRels = new DepthNPool(d, pool.lRuns.filter(_.id != rp.id) :+ nrp, pool.qRels).qRels
       val nkp = (1d - (TRECEval().computeMetric("P_" + d, nrp, nQRels) + TRECEval().computeAntiMetric("P_" + d, nrp, nQRels))) * d
@@ -103,7 +103,7 @@ class LipaniEstimatorV2QB(pool: Pool, metric: String, descs: Descs = null, D:Int
     val sru = (pool.lRuns.map(rr => TRECEval().computeMetric("P_" + d, rr, pool.qRels)*d).sum + TRECEval().computeMetric("P_" + d, ru, pool.qRels)*d) / C // this is not true
     val asru = (C - sru*C - ku) / C
     val kru = 1d - (sru + asru)
-    val vs = pool.lRuns.par.map(rp => {
+    val vs = pool.lRuns.map(rp => {
       val nrp = rp ◦ ru
       val nQRels = new DepthNPool(d, pool.lRuns.filter(_.id != rp.id).toList :+ nrp, pool.qRels).qRels
 

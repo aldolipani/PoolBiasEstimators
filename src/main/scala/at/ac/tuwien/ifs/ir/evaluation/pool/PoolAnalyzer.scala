@@ -10,10 +10,10 @@ import at.ac.tuwien.ifs.ir.model._
   */
 object PoolAnalyzerType extends Enumeration {
   type PoolAnalyzerType = Value
-  val MODE, MAX_JUDGED = Value
+  val MODE, MAX_JUDGED, MIN_DEPTH = Value
 }
 
-class PoolAnalyzer(val pool: Pool, poolAnalyzerType:PoolAnalyzerType = PoolAnalyzerType.MODE) {
+class PoolAnalyzer(val pool: Pool, poolAnalyzerType: PoolAnalyzerType = PoolAnalyzerType.MODE) {
 
   lazy val d: Int = computePoolDepth
   lazy val pooledRuns = getPooledRuns
@@ -25,29 +25,60 @@ class PoolAnalyzer(val pool: Pool, poolAnalyzerType:PoolAnalyzerType = PoolAnaly
       val lr =
         for (qRel <- pool.qRels.qRels if runs.selectByTopicId(qRel.id) != null) yield {
           val run = runs.selectByTopicId(qRel.id)
-          val aSize = getApproximateSize(PoolAnalyzer.fixRun(run,qRel), qRel)
-          if(aSize == run.runRecords.size)
+          val aSize = getApproximateSize(PoolAnalyzer.fixRun(run, qRel), qRel)
+          //println(aSize, run.runRecords.size)
+          if (aSize >= run.runRecords.size)
             -1
           else
             aSize
         }
-      if(lr.contains(0)){
+      if (lr.contains(0)) {
         0
-      }else{
-        if(lr.filter( _ != -1).isEmpty)
-          runs.runs.head.runRecords.size
+      } else {
+        if (lr.filter(_ != -1).isEmpty)
+          runs.runs.map(run => run.runRecords.size).max
         else
           lr.filter(_ != -1).min
       }
     }
-
+    //println(l.mkString(" "))
     if (l.nonEmpty)
-      mode(l)
+      modeRight(l.filter(_ != 0))
     else
       0
   }
 
-
+  private def computePoolDepthMin() = {
+    val qRel = pool.qRels.qRels.head
+    val l = for (runs <- pool.lRuns) yield {
+      val lr =
+        for (qRel <- pool.qRels.qRels if runs.selectByTopicId(qRel.id) != null) yield {
+          val run = runs.selectByTopicId(qRel.id)
+          val aSize = getApproximateSize(PoolAnalyzer.fixRun(run, qRel), qRel)
+          //println(aSize, run.runRecords.size)
+          if (aSize >= run.runRecords.size)
+            -1
+          else
+            aSize
+        }
+      if (lr.contains(0)) {
+        0
+      } else {
+        if (lr.filter(_ != -1).isEmpty)
+          -1
+        else
+          lr.filter(_ != -1).min
+      }
+    }
+    if (l.contains(0)){
+      0
+    } else {
+      if (l.filter(_ != -1).isEmpty)
+        l.filter(_ != -1).max
+      else
+        l.filter(_ != -1).min
+    }
+  }
 
   private def computePoolDepthMAXJudged() = {
     val qRel = pool.qRels.qRels.head
@@ -71,8 +102,10 @@ class PoolAnalyzer(val pool: Pool, poolAnalyzerType:PoolAnalyzerType = PoolAnaly
   }
 
   private def computePoolDepth() = {
-    if(poolAnalyzerType == PoolAnalyzerType.MAX_JUDGED)
+    if (poolAnalyzerType == PoolAnalyzerType.MAX_JUDGED)
       this.computePoolDepthMAXJudged()
+    else if (poolAnalyzerType == PoolAnalyzerType.MIN_DEPTH)
+      this.computePoolDepthMin()
     else
       this.computePoolDepthMode()
   }
@@ -104,7 +137,7 @@ class PoolAnalyzer(val pool: Pool, poolAnalyzerType:PoolAnalyzerType = PoolAnaly
           sRuns.topicIds.intersect(pool.qRels.topicIds).forall(tId => {
             val run = sRuns.selectByTopicId(tId)
             val qRel = pool.qRels.topicQRels.get(tId).get
-            val aSize = getApproximateSize(PoolAnalyzer.fixRun(run, qRel), qRel, d/10)
+            val aSize = getApproximateSize(PoolAnalyzer.fixRun(run, qRel), qRel, d / 20)
             //println(sRuns.id, tId, aSize, run == null || aSize >= d || run.runRecords.size == aSize)
             //println(sRuns.id, tId, aSize, d, run.runRecords.size)
             run == null || aSize >= d || aSize >= run.runRecords.size
@@ -115,7 +148,7 @@ class PoolAnalyzer(val pool: Pool, poolAnalyzerType:PoolAnalyzerType = PoolAnaly
       }
     }
 
-    if(d == 0)
+    if (d == 0)
       Nil
     else
       getPooledRuns(pool.lRuns, Nil)
@@ -124,7 +157,7 @@ class PoolAnalyzer(val pool: Pool, poolAnalyzerType:PoolAnalyzerType = PoolAnaly
   @deprecated
   def repoolWith(lRuns: List[Runs]): QRels = {
     val nQRels =
-      for (qRel <- pool.qRels.qRels.par if (lRuns.head.selectByTopicId(qRel.id) != null)) yield {
+      for (qRel <- pool.qRels.qRels if (lRuns.head.selectByTopicId(qRel.id) != null)) yield {
         val docs =
           lRuns.flatMap(l => {
             if (l.selectByTopicId(qRel.id) == null)
@@ -213,14 +246,14 @@ class PoolAnalyzer(val pool: Pool, poolAnalyzerType:PoolAnalyzerType = PoolAnaly
         (pool.qRels.sizeNotRel - nnPool.qRels.sizeNotRel).toDouble / (pool.qRels.size - nnPool.qRels.size)
     }).sorted*/
 
-  def getRatioRelOverAllDocuments(n:Int): List[Double] =
+  def getRatioRelOverAllDocuments(n: Int): List[Double] =
     pool.lRuns.map(run => {
       val nnPool = pool.getNewInstance(pool.lRuns.filter(_.id != run.id))
       if (pool.qRels.size - nnPool.qRels.size == 0d)
         0d
       else
-        (TRECEval().computeMetric("P_"+n, run, pool.qRels) - TRECEval().computeMetric("P_"+n, run, nnPool.qRels)).toDouble /
-          (TRECEval().computeMetric("P_"+n, run, nnPool.qRels) + TRECEval().computeMetric("P_"+n, run,  pool.qRels))
+        (TRECEval().computeMetric("P_" + n, run, pool.qRels) - TRECEval().computeMetric("P_" + n, run, nnPool.qRels)).toDouble /
+          (TRECEval().computeMetric("P_" + n, run, nnPool.qRels) + TRECEval().computeMetric("P_" + n, run, pool.qRels))
     }).sorted
 
   def getRatioRelOverAllDocuments2(descs: Descs): List[Double] = {
@@ -238,7 +271,7 @@ class PoolAnalyzer(val pool: Pool, poolAnalyzerType:PoolAnalyzerType = PoolAnaly
     }).sorted
   }
 
-  def getRatioRelOverAllDocuments2(descs: Descs, n:Int): List[Double] = {
+  def getRatioRelOverAllDocuments2(descs: Descs, n: Int): List[Double] = {
     val olRuns = descs.getRunsPerOrganization(pool.lRuns)
     olRuns.flatMap(slRuns => {
       val nlRuns = ScoreEstimator.excludeRuns(slRuns, pool.lRuns)
@@ -248,8 +281,8 @@ class PoolAnalyzer(val pool: Pool, poolAnalyzerType:PoolAnalyzerType = PoolAnaly
         if (nPool.qRels.size - nnPool.qRels.size == 0d)
           Double.NaN
         else
-          (TRECEval().computeMetric("P_"+n, run, nPool.qRels) - TRECEval().computeMetric("P_"+n, run, nnPool.qRels)).toDouble /
-            (TRECEval().computeMetric("P_"+n, run, nnPool.qRels) + TRECEval().computeMetric("P_"+n, run,  nPool.qRels))
+          (TRECEval().computeMetric("P_" + n, run, nPool.qRels) - TRECEval().computeMetric("P_" + n, run, nnPool.qRels)).toDouble /
+            (TRECEval().computeMetric("P_" + n, run, nnPool.qRels) + TRECEval().computeMetric("P_" + n, run, nPool.qRels))
       })
     }).sorted
   }
@@ -274,7 +307,7 @@ class PoolAnalyzer(val pool: Pool, poolAnalyzerType:PoolAnalyzerType = PoolAnaly
       if (pool.qRels.size - nnPool.qRels.size == 0d)
         Double.NaN
       else
-          /*TRECEval().computeP100(run, pool.qRels), */(pool.qRels.sizeRel - nnPool.qRels.sizeRel).toDouble / (pool.qRels.size - nnPool.qRels.size)
+      /*TRECEval().computeP100(run, pool.qRels), */ (pool.qRels.sizeRel - nnPool.qRels.sizeRel).toDouble / (pool.qRels.size - nnPool.qRels.size)
     })
   }
 
@@ -320,26 +353,33 @@ class PoolAnalyzer(val pool: Pool, poolAnalyzerType:PoolAnalyzerType = PoolAnaly
       (tId, nPool.lRuns.map(run => nPool.qRels.size - nPool.getNewInstance(nPool.lRuns.filter(_.id != run.id)).qRels.size).sorted)
     }).toList.sortBy(_._1)
 
-  private def mode[A](l: Seq[A]) =
-      l.groupBy(i => i).mapValues(_.size).maxBy(_._2)._1
+  private def modeRight(l: Seq[Int]) = {
+    if (l.isEmpty)
+      0
+    else
+      l.groupBy(i => i).mapValues(_.size).toList.
+        sortBy(e => (-e._2, -e._1)).head._1
+  }
 
 
 }
 
-object PoolAnalyzer{
+object PoolAnalyzer {
 
-  def apply(pool: Pool, poolAnalyzerType:PoolAnalyzerType = PoolAnalyzerType.MODE):PoolAnalyzer = new PoolAnalyzer(pool, poolAnalyzerType)
+  def apply(pool: Pool, poolAnalyzerType: PoolAnalyzerType = PoolAnalyzerType.MODE): PoolAnalyzer = new PoolAnalyzer(pool, poolAnalyzerType)
 
-  def apply(pool: Pool, poolAnalyzerType:String):PoolAnalyzer = new PoolAnalyzer(pool, parsePoolAnalyzerType(poolAnalyzerType))
+  def apply(pool: Pool, poolAnalyzerType: String): PoolAnalyzer = new PoolAnalyzer(pool, parsePoolAnalyzerType(poolAnalyzerType))
 
-  def parsePoolAnalyzerType(str: String):PoolAnalyzerType = {
-    if(str == "max_judged")
+  def parsePoolAnalyzerType(str: String): PoolAnalyzerType = {
+    if (str == "max_judged")
       PoolAnalyzerType.MAX_JUDGED
+    else if (str == "min_depth")
+      PoolAnalyzerType.MIN_DEPTH
     else
       PoolAnalyzerType.MODE
   }
 
-  def fixRuns(lRuns:List[Runs], qRels:QRels):List[Runs] = {
+  def fixRuns(lRuns: List[Runs], qRels: QRels): List[Runs] = {
     for (runs <- lRuns) yield {
       new Runs(runs.id,
         (for (qRel <- qRels.qRels if runs.selectByTopicId(qRel.id) != null) yield {
@@ -349,19 +389,19 @@ object PoolAnalyzer{
     }
   }
 
-  def fixRun(run:Run, qRel:QRel):Run = {
-    def sort(runRecords: List[RunRecord], accJ:List[RunRecord] = List[RunRecord](), accNJ:List[RunRecord] = List[RunRecord]()): List[RunRecord] = {
-      if(runRecords.isEmpty)
-        accJ:::accNJ
-      else{
-        if(qRel.containsDocumentId(runRecords.head.document.id))
+  def fixRun(run: Run, qRel: QRel): Run = {
+    def sort(runRecords: List[RunRecord], accJ: List[RunRecord] = List[RunRecord](), accNJ: List[RunRecord] = List[RunRecord]()): List[RunRecord] = {
+      if (runRecords.isEmpty)
+        accJ ::: accNJ
+      else {
+        if (qRel.containsDocumentId(runRecords.head.document.id))
           sort(runRecords.tail, accJ :+ runRecords.head, accNJ)
         else
-          sort(runRecords.tail, accJ , accNJ :+ runRecords.head)
+          sort(runRecords.tail, accJ, accNJ :+ runRecords.head)
       }
     }
 
-    val nRunRecords:List[RunRecord] =
+    val nRunRecords: List[RunRecord] =
       run.runRecords.groupBy(_.score)
         .toList.sortBy(_._2.head.rank)
         .flatMap(e => sort(e._2))

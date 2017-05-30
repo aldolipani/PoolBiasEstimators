@@ -144,7 +144,7 @@ class WebberOnRunsEstimatorV3(pool: Pool, metric: String, descs: Descs = null, l
 
   def selectRR(runs:Runs, qRels:QRels, isRel:Boolean):Runs = new Runs(runs.id, //(val iteration: String, val document: Document, val rank: Int, val score: Float
     runs.runs.map(run => new Run(run.id,
-      run.runRecords.filter(rr => qRels.getRel(run.id, rr.document.id) > 0 && isRel || qRels.getRel(run.id, rr.document.id) == 0 && !isRel))))
+      run.runRecords.filter(rr => qRels.getRel(run.id, rr.document) > 0 && isRel || qRels.getRel(run.id, rr.document) == 0 && !isRel))))
 
   def selectRel(runs:Runs, qRels:QRels):Runs = selectRR(runs, qRels, true)
 

@@ -4,15 +4,20 @@ package at.ac.tuwien.ifs.ir.model
  * Created by aldo on 10/10/14.
  */
 class Run(val id: Int, val runRecords: List[RunRecord]) {
-  lazy val runRecordsMapByDocumentID = {
+  private lazy val runRecordsMapByDocumentID = {
     val runRecordsMapByDocumentID = runRecords.map(rR => rR.document.id -> rR).toMap
     //if(runRecords.size != runRecordsMapByDocumentID.size)
     //  throw new Exception(runRecords.size + " " + runRecordsMapByDocumentID.size)
     runRecordsMapByDocumentID
   }
 
+  private lazy val runRecordsMapByDocument = runRecords.map(rR => rR.document -> rR).toMap
+
   override def toString: String = runRecords.sortBy(-_.score).map(s"$id " + _.toString).mkString("\n")
 
+  def getByDocument(doc:Document): RunRecord = runRecordsMapByDocument.getOrElse(doc, null)
+
+  @deprecated
   def getByDocumentId(id: String): RunRecord = runRecordsMapByDocumentID.getOrElse(id, null)
 
 }
