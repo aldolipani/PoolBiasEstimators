@@ -13,31 +13,35 @@ import scalacache.guava.GuavaCache
 
 class PoolCommand
 
-case class DepthNOption(val n: Int) extends PoolCommand
+case class DepthNOption(n: Int) extends PoolCommand
 
-case class UniformSampledOption(val n: Int, val rate: Float) extends PoolCommand
+case class UniformSampledOption(n: Int, rate: Float) extends PoolCommand
 
-case class Strata(val depth: Int, val rate: Float)
+case class Strata(depth: Int, rate: Float)
 
-case class StratifiedSampledOption(val stratas: List[Strata]) extends PoolCommand
+case class StratifiedSampledOption(stratas: List[Strata]) extends PoolCommand
 
-case class RBPBasedOption(val method: String, val p: Float, nD: Int) extends PoolCommand
+case class RBPBasedOption(method: String, p: Float, nD: Int) extends PoolCommand
 
 case class DCGBasedOption(nD: Int) extends PoolCommand
 
-case class MABBasedOption(val method: String, val c1: Float, c2: Float, nD: Int) extends PoolCommand
+case class MABBasedOption(method: String, c1: Float, c2: Float, nD: Int) extends PoolCommand
 
-case class DepthNMABBasedOption(val method: String, depth:Int, val c1: Float, c2: Float, nD: Int) extends PoolCommand
+case class DetailedMABBasedOption(method: String, c1: Float, c2: Float, nDs: Map[Int, Int]) extends PoolCommand
+
+case class DepthNMABBasedOption(method: String, depth: Int, c1: Float, c2: Float, nD: Int) extends PoolCommand
 
 case class RRFBasedOption(k: Int, nD: Int) extends PoolCommand
 
-case class FusionBasedOption(val method: String, nD: Int) extends PoolCommand
+case class FusionBasedOption(method: String, nD: Int) extends PoolCommand
 
-case class HedgeBasedOption(val beta: Double, nD: Int) extends PoolCommand
+case class HedgeBasedOption(beta: Double, nD: Int) extends PoolCommand
 
-case class DepthNHedgeBasedOption(depth:Int, val beta: Double, nD: Int) extends PoolCommand
+case class DepthNHedgeBasedOption(depth: Int, beta: Double, nD: Int) extends PoolCommand
 
 case class MTFBasedOption(nD: Int) extends PoolCommand
+
+case class DetailedMTFBasedOption(nDs: Map[Int, Int]) extends PoolCommand
 
 case class DepthNMTFBasedOption(n: Int, nD: Int) extends PoolCommand
 
@@ -50,6 +54,7 @@ case class UnsupportedBasedOption(cmd: String) extends PoolCommand
 case class UnsupportedFixedSizeBasedOption(cmd: String, poolSize: Int) extends PoolCommand
 
 case class Stratified2StrataOption(n: Int, nD: Int) extends PoolCommand
+
 
 object PoolConverter {
 
@@ -64,10 +69,9 @@ object PoolConverter {
       qRels)
   }
 
-  def repoolToMTFBased(poolSize: Int, lRuns: List[Runs], qRels: QRels): QRels = {
-    val topicSizes = FixedSizePool.findTopicSizes(poolSize, lRuns, qRels)
+  def repoolToMTFBased(poolSize: Int, lRuns: List[Runs], qRels: QRels, nDs: Map[Int, Int]): QRels = {
     repoolTo(
-      MTFBasedPool.getPooledDocuments(topicSizes, lRuns, qRels),
+      MTFBasedPool.getPooledDocuments(nDs, lRuns, qRels),
       MTFBasedPool.getName(poolSize),
       lRuns,
       qRels)
@@ -91,7 +95,7 @@ object PoolConverter {
       qRels)
   }
 
-  def repoolToDepthNHedgeBased(depth:Int, beta: Double, poolSize: Int, lRuns: List[Runs], qRels: QRels): QRels = {
+  def repoolToDepthNHedgeBased(depth: Int, beta: Double, poolSize: Int, lRuns: List[Runs], qRels: QRels): QRels = {
     val topicSizes = FixedSizePool.findTopicSizes(poolSize, lRuns, qRels)
     repoolTo(
       DepthNHedgeBasedPool.getPooledDocuments(depth, beta, topicSizes, lRuns, qRels),
@@ -135,16 +139,15 @@ object PoolConverter {
       qRels)
   }
 
-  def repoolToMABBased(method: String, c1: Double, c2: Double, poolSize: Int, lRuns: List[Runs], qRels: QRels): QRels = {
-    val topicSizes = FixedSizePool.findTopicSizes(poolSize, lRuns, qRels)
+  def repoolToMABBased(method: String, c1: Double, c2: Double, poolSize: Int, lRuns: List[Runs], qRels: QRels, nDs: Map[Int, Int]): QRels = {
     repoolTo(
-      MABBasedPool.getPooledDocuments(method, c1, c2, topicSizes, lRuns, qRels),
+      MABBasedPool.getPooledDocuments(method, c1, c2, nDs, lRuns, qRels),
       MABBasedPool.getName(method, c1, c2, poolSize),
       lRuns,
       qRels)
   }
 
-  def repoolToDepthNMABBased(method: String, depth:Int, c1: Double, c2: Double, poolSize: Int, lRuns: List[Runs], qRels: QRels): QRels = {
+  def repoolToDepthNMABBased(method: String, depth: Int, c1: Double, c2: Double, poolSize: Int, lRuns: List[Runs], qRels: QRels): QRels = {
     val topicSizes = FixedSizePool.findTopicSizes(poolSize, lRuns, qRels)
     repoolTo(
       DepthNMABBasedPool.getPooledDocuments(method, depth, c1, c2, topicSizes, lRuns, qRels),
@@ -259,6 +262,10 @@ object PoolConverter {
       case pool: DepthNPool => MABBasedPool(m, c1, c2, nD, pool.lRuns, pool.qRels)
       case pool: Pool => MABBasedPool(m, c1, c2, nD, pool.lRuns, pool.qRels)
     }
+    case DetailedMABBasedOption(m, c1, c2, nDs) => pool match {
+      case pool: DepthNPool => new MABBasedPool(m, c1, c2, nDs.values.sum, pool.lRuns, pool.qRels, Option(nDs))
+      case pool: Pool => new MABBasedPool(m, c1, c2, nDs.values.sum, pool.lRuns, pool.qRels, Option(nDs))
+    }
     case DepthNMABBasedOption(m, depth, c1, c2, nD) => pool match {
       case pool: DepthNPool => DepthNMABBasedPool(m, depth, c1, c2, nD, pool.lRuns, pool.qRels)
       case pool: Pool => DepthNMABBasedPool(m, depth, c1, c2, nD, pool.lRuns, pool.qRels)
@@ -277,6 +284,10 @@ object PoolConverter {
     }
     case MTFBasedOption(nD) => pool match {
       case pool: DepthNPool => MTFBasedPool(nD, pool.lRuns, pool.qRels)
+    }
+    case DetailedMTFBasedOption(nDs) => pool match {
+      case pool: DepthNPool => new MTFBasedPool(nDs.values.sum, pool.lRuns, pool.qRels, Option(nDs))
+      case pool: Pool => new MTFBasedPool(nDs.values.sum, pool.lRuns, pool.qRels, Option(nDs))
     }
     case DepthNMTFBasedOption(n, nD) => pool match {
       case pool: DepthNPool => DepthNMTFBasedPool(n, nD, pool.lRuns, pool.qRels)
@@ -299,6 +310,14 @@ object PoolConverter {
     case null => pool
   }
 
+  // [151->100,152->100,...]
+  def parseTopicSizes(str: String): Map[Int, Int] = {
+    str.dropRight(1).drop(1).split(",").map(e => {
+      val es = e.split("->");
+      es.head.toInt -> es.last.toInt
+    }).toMap
+  }
+
   /**
     * Commands:
     * depth_n
@@ -312,33 +331,33 @@ object PoolConverter {
     val cmd = sToPool.head.toLowerCase()
     if (cmd == "depth") {
       val n = sToPool(1).toInt
-      new DepthNOption(n)
+      DepthNOption(n)
     } else if (cmd == "sampleddepth") {
       val args = sToPool(1).split(":")
       val n = args(0).toInt
       val rate = args(1).toFloat
-      new UniformSampledOption(n, rate)
+      UniformSampledOption(n, rate)
     } else if (cmd == "stratified") {
       val args = sToPool.drop(1).map(_.split(":"))
-      val stratas = args.map(e => new Strata(e(0).toInt, e(1).toFloat)).toList
-      new StratifiedSampledOption(stratas)
+      val stratas = args.map(e => Strata(e(0).toInt, e(1).toFloat)).toList
+      StratifiedSampledOption(stratas)
     } else if (cmd == "stratified2strata") {
       // 10:3
       val args = sToPool(1).split(":")
       val n = args(0).toInt
       val nD = args(1).toInt
-      new Stratified2StrataOption(n, nD)
+      Stratified2StrataOption(n, nD)
     } else if (cmd == "rbpbased") {
       // rbpBased_A:0.8:3
       val args = sToPool(1).split(":")
       val m = args(0).toLowerCase()
       val p = args(1).toFloat
       val nD = args(2).toInt
-      new RBPBasedOption(m, p, nD)
+      RBPBasedOption(m, p, nD)
     } else if (cmd == "dcgbased") {
       // dcgBased_10000
       val nD = sToPool(1).toInt
-      new DCGBasedOption(nD)
+      DCGBasedOption(nD)
     } else if (cmd == "mabbased") {
       // mbaBased_greedy:0:10000
       val args = sToPool(1).split(":")
@@ -347,12 +366,17 @@ object PoolConverter {
         val c1 = args(1).toFloat
         val c2 = args(2).toFloat
         val nD = args(3).toInt
-        new MABBasedOption(m, c1, c2, nD)
+        MABBasedOption(m, c1, c2, nD)
       } else {
-        val nD = args(1).toInt
-        new MABBasedOption(m, 0f, 0f, nD)
+        if (args(1).startsWith("[")) {
+          val nDs = parseTopicSizes(args(1))
+          DetailedMABBasedOption(m, 0f, 0f, nDs)
+        } else {
+          val nD = args(1).toInt
+          MABBasedOption(m, 0f, 0f, nD)
+        }
       }
-    }else if (cmd == "depthnmabbased") {
+    } else if (cmd == "depthnmabbased") {
       // mbaBased_greedy:0:10000
       val args = sToPool(1).split(":")
       val m = args(0).toLowerCase() // random,greedy,ucb,bla
@@ -361,67 +385,72 @@ object PoolConverter {
         val c1 = args(2).toFloat
         val c2 = args(3).toFloat
         val nD = args(4).toInt
-        new DepthNMABBasedOption(m, depth, c1, c2, nD)
+        DepthNMABBasedOption(m, depth, c1, c2, nD)
       } else {
         val depth = args(1).toInt
         val nD = args(2).toInt
-        new DepthNMABBasedOption(m, depth, 0f, 0f, nD)
+        DepthNMABBasedOption(m, depth, 0f, 0f, nD)
       }
     } else if (cmd == "rrfbased") {
       // rffBased_A:60:3
       val args = sToPool(1).split(":")
       val k = args(0).toInt
       val nD = args(1).toInt
-      new RRFBasedOption(k, nD)
+      RRFBasedOption(k, nD)
     } else if (cmd == "fusionbased") {
       // fusionbased_combmed:10000
       val args = sToPool(1).split(":")
       val m = args(0).toLowerCase()
       val nD = args(1).toInt
-      new FusionBasedOption(m, nD)
+      FusionBasedOption(m, nD)
     } else if (cmd == "bordabased") {
       // bordaBased:10000
       val nD = sToPool(1).toInt
-      new BordaBasedOption(nD)
+      BordaBasedOption(nD)
     } else if (cmd == "condorcetbased") {
       // condorcetbased:10000
       val args = sToPool(1).split(":")
       val nD = args(0).toInt
-      new CondorcetBasedOption(nD)
+      CondorcetBasedOption(nD)
     } else if (cmd == "hedgebased") {
       // hedgeBased_0.1:10000
       val args = sToPool(1).split(":")
       val beta = args(0).toDouble
       val nD = args(1).toInt
-      new HedgeBasedOption(beta, nD)
+      HedgeBasedOption(beta, nD)
     } else if (cmd == "depthnhedgebased") {
       // depthnhedgebased_10:0.1:10000
       val args = sToPool(1).split(":")
       val depth = args(0).toInt
       val beta = args(1).toDouble
       val nD = args(2).toInt
-      new DepthNHedgeBasedOption(depth, beta, nD)
+      DepthNHedgeBasedOption(depth, beta, nD)
     } else if (cmd == "depthnmtfbased") {
       // hedgeBased_10:10000
       val args = sToPool(1).split(":")
       val depth = args(0).toInt
       val nD = args(1).toInt
-      new DepthNMTFBasedOption(depth, nD)
+      DepthNMTFBasedOption(depth, nD)
     } else if (cmd == "mtfbased") {
       // mtfBased:10000
-      val nD = sToPool(1).toInt
-      new MTFBasedOption(nD)
+      if (sToPool(1).startsWith("[")) {
+        val nDs = parseTopicSizes(sToPool(1))
+        DetailedMTFBasedOption(nDs)
+      } else {
+        val nD = sToPool(1).toInt
+        MTFBasedOption(nD)
+      }
     } else if (toPool.replaceAll("\"", "").trim().startsWith("$")) {
       if (toPool.replaceAll("\"", "").trim().startsWith("$(topicsizes:")) {
         // $ cmd
         val temp = toPool.replaceAll("\"", "").trim().drop(13).trim()
         val poolSize = temp.split(')').head.toInt
         val cmd = temp.split(')').last.trim()
-        new UnsupportedFixedSizeBasedOption(cmd, poolSize)
+        UnsupportedFixedSizeBasedOption(cmd, poolSize)
       } else {
         // $ cmd
         val cmd = toPool.replaceAll("\"", "").trim().drop(1).trim()
-        new UnsupportedBasedOption(cmd)
+        UnsupportedBasedOption(cmd)
       }
     } else {
       throw new Exception("toPoolingStrategy: " + toPool + " command not recognized")

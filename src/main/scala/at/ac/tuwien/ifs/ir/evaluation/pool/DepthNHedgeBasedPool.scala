@@ -13,7 +13,7 @@ class DepthNHedgeBasedPool(depth: Int, beta: Double, poolSize: Int, lRuns: List[
 
   override lazy val qRels: QRels = PoolConverter.repoolToDepthNHedgeBased(depth, beta, poolSize, lRuns, gT)
 
-  override def getPooledDocuments(topicId: Int): Set[Document] = DepthNHedgeBasedPool.getPooledDocuments(depth, beta, topicSizes, lRuns, gT)(topicId)
+  //override def getPooledDocuments(topicId: Int): Set[Document] = DepthNHedgeBasedPool.getPooledDocuments(depth, beta, estimatedNDs, lRuns, gT)(topicId)
 
   override def getNewInstance(lRuns: List[Runs]): Pool = DepthNHedgeBasedPool(depth, beta, poolSize, lRuns, gT)
 

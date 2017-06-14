@@ -5,6 +5,8 @@ import at.ac.tuwien.ifs.ir.evaluation.pool.PoolAnalyzerType.PoolAnalyzerType
 import at.ac.tuwien.ifs.ir.evaluation.poolbias.estimators.ScoreEstimator
 import at.ac.tuwien.ifs.ir.model._
 
+import scala.annotation.tailrec
+
 /**
   * Created by aldo on 10/10/14.
   */
@@ -25,7 +27,7 @@ class PoolAnalyzer(val pool: Pool, poolAnalyzerType: PoolAnalyzerType = PoolAnal
       val lr =
         for (qRel <- pool.qRels.qRels if runs.selectByTopicId(qRel.id) != null) yield {
           val run = runs.selectByTopicId(qRel.id)
-          val aSize = getApproximateSize(PoolAnalyzer.fixRun(run, qRel), qRel)
+          val aSize = getApproximateSize(/*PoolAnalyzer.fixRun(*/run/*, qRel)*/, qRel)
           //println(aSize, run.runRecords.size)
           if (aSize >= run.runRecords.size)
             -1
@@ -54,7 +56,7 @@ class PoolAnalyzer(val pool: Pool, poolAnalyzerType: PoolAnalyzerType = PoolAnal
       val lr =
         for (qRel <- pool.qRels.qRels if runs.selectByTopicId(qRel.id) != null) yield {
           val run = runs.selectByTopicId(qRel.id)
-          val aSize = getApproximateSize(PoolAnalyzer.fixRun(run, qRel), qRel)
+          val aSize = getApproximateSize(/*PoolAnalyzer.fixRun(*/run/*, qRel)*/, qRel)
           //println(aSize, run.runRecords.size)
           if (aSize >= run.runRecords.size)
             -1
@@ -86,7 +88,7 @@ class PoolAnalyzer(val pool: Pool, poolAnalyzerType: PoolAnalyzerType = PoolAnal
       for (qRel <- pool.qRels.qRels) yield {
         val run = runs.selectByTopicId(qRel.id)
         if (run != null)
-          getApproximateSize(PoolAnalyzer.fixRun(run, qRel), qRel)
+          getApproximateSize(/*PoolAnalyzer.fixRun(*/run/*, qRel)*/, qRel)
         else 0
       }
     }
@@ -137,7 +139,7 @@ class PoolAnalyzer(val pool: Pool, poolAnalyzerType: PoolAnalyzerType = PoolAnal
           sRuns.topicIds.intersect(pool.qRels.topicIds).forall(tId => {
             val run = sRuns.selectByTopicId(tId)
             val qRel = pool.qRels.topicQRels.get(tId).get
-            val aSize = getApproximateSize(PoolAnalyzer.fixRun(run, qRel), qRel, d / 20)
+            val aSize = getApproximateSize(/*PoolAnalyzer.fixRun(*/run/*, qRel)*/, qRel, d / 20)
             //println(sRuns.id, tId, aSize, run == null || aSize >= d || run.runRecords.size == aSize)
             //println(sRuns.id, tId, aSize, d, run.runRecords.size)
             run == null || aSize >= d || aSize >= run.runRecords.size
@@ -390,11 +392,12 @@ object PoolAnalyzer {
   }
 
   def fixRun(run: Run, qRel: QRel): Run = {
+    @tailrec
     def sort(runRecords: List[RunRecord], accJ: List[RunRecord] = List[RunRecord](), accNJ: List[RunRecord] = List[RunRecord]()): List[RunRecord] = {
       if (runRecords.isEmpty)
         accJ ::: accNJ
       else {
-        if (qRel.containsDocumentId(runRecords.head.document.id))
+        if (qRel.getRel(runRecords.head.document) >= 0)
           sort(runRecords.tail, accJ :+ runRecords.head, accNJ)
         else
           sort(runRecords.tail, accJ, accNJ :+ runRecords.head)
@@ -403,7 +406,7 @@ object PoolAnalyzer {
 
     val nRunRecords: List[RunRecord] =
       run.runRecords.groupBy(_.score)
-        .toList.sortBy(_._2.head.rank)
+        .toList.sortBy(-_._1)
         .flatMap(e => sort(e._2))
 
     new Run(run.id, nRunRecords)

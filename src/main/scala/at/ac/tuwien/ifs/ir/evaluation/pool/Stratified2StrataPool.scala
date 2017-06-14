@@ -13,7 +13,7 @@ class Stratified2StrataPool(poolSize:Int, n:Int, lRuns: List[Runs], gT: QRels) e
 
   lazy val fdSr = Stratified2StrataPool.getFdSr(poolSize, n, lRuns, gT)
 
-  override def getPooledDocuments(topicId: Int): Set[Document] = Stratified2StrataPool.getPooledDocuments(fdSr, poolSize, n, lRuns, gT)(topicId)
+  //override def getPooledDocuments(topicId: Int): Set[Document] = Stratified2StrataPool.getPooledDocuments(fdSr, poolSize, n, lRuns, gT)(topicId)
 
   override def getNewInstance(lRuns: List[Runs]): Pool = Stratified2StrataPool(poolSize, n, lRuns, gT)
 

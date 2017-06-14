@@ -14,9 +14,9 @@ class DepthNMTFBasedPool(depth: Int, poolSize: Int, lRuns: List[Runs], gT: QRels
 
   override lazy val qRels: QRels = PoolConverter.repoolToDepthNMTFBased(depth, poolSize, lRuns, gT)
 
-  override def getPooledDocuments(topicId: Int): Set[Document] = DepthNMTFBasedPool.getPooledDocuments(depth, topicSizes, lRuns, gT)(topicId)
+  //override def getPooledDocuments(topicId: Int): Set[Document] = DepthNMTFBasedPool.getPooledDocuments(depth, estimatedNDs, lRuns, gT)(topicId)
 
-  override def getNewInstance(lRuns: List[Runs]): Pool = MTFBasedPool(poolSize, lRuns, gT)
+  override def getNewInstance(lRuns: List[Runs]): Pool = DepthNMTFBasedPool(depth, poolSize, lRuns, gT)
 
 }
 

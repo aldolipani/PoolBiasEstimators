@@ -14,7 +14,7 @@ class DCGBasedPool(poolSize: Int, lRuns: List[Runs], gT: QRels) extends FixedSiz
 
   override lazy val qRels: QRels = PoolConverter.repoolToDCGBased(poolSize, lRuns, gT)
 
-  override def getPooledDocuments(topicId: Int): Set[Document] = DCGBasedPool.getPooledDocuments(topicSizes, lRuns, gT)(topicId)
+  //override def getPooledDocuments(topicId: Int): Set[Document] = DCGBasedPool.getPooledDocuments(estimatedNDs, lRuns, gT)(topicId)
 
   override def getNewInstance(lRuns: List[Runs]): Pool = DCGBasedPool(poolSize, lRuns, gT)
 

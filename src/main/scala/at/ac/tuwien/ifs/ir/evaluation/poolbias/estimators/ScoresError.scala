@@ -6,9 +6,10 @@ import at.ac.tuwien.ifs.ir.evaluation.TRECEval
 import at.ac.tuwien.ifs.ir.evaluation.pool.Pool
 import at.ac.tuwien.ifs.ir.evaluation.poolbias.estimators.bin.Main.L1xo
 import at.ac.tuwien.ifs.ir.evaluation.poolbias.estimators.bin.Main.L1xo.L1xo
-import at.ac.tuwien.ifs.ir.model.{Runs, Score}
+import at.ac.tuwien.ifs.ir.model.{DetailedScore, Runs, Score}
 import at.ac.tuwien.ifs.r.Stats._
 import org.apache.commons.math3.stat.correlation.KendallsCorrelation
+import org.apache.commons.math3.stat.inference.TTest
 import org.sameersingh.scalaplot.Implicits._
 import org.sameersingh.scalaplot.XYPlotStyle
 
@@ -19,8 +20,9 @@ import scala.io.Source
 /**
  * Created by aldo on 15/02/15.
  */
-class ScoresError(trueScores:List[Score], trueScoresPerQueries: List[List[(Int, Score)]], pValuesDir: File =
-null, metric: String = null) {
+class ScoresError(trueScores:List[DetailedScore], trueScoresPerQueries: List[List[(Int, Score)]], metric: String = null) {
+
+  val tTest:TTest = new TTest()
 
   if (trueScores.size != trueScores.map(_.runId).toSet.size) println("Warning: found duplicate runId in trueScores")
 
@@ -53,7 +55,7 @@ null, metric: String = null) {
 
   def systemRankError(testScores: List[Score]): Int = {
     testScores.map(s => {
-      val oR = findRank(trueScoresMap.get(s.runId).get, trueScores)
+      val oR = findRank(trueScoresMap(s.runId), trueScores)
       val nR = findRank(s, trueScores.filter(_.runId != s.runId))
       Math.abs(oR - nR)
     }).sum
@@ -61,16 +63,19 @@ null, metric: String = null) {
 
   def relativeSystemRankError(testScores: List[Score], lRuns:List[Runs]): Int = {
     testScores.map(s => {
-      val oR = findRank(trueScoresMap.get(s.runId).get, trueScores)
-      val newTrueScores = lRuns.map(runs => new Score(runs.id, TRECEval().computeMetric(s.metric, runs, s.qRels), s.metric, s.qRels))
+      val newTrueScores = lRuns.map(runs => new Score(runs.id,
+        TRECEval().computeMetric(s.metric, runs, s.qRels),
+        s.metric, s.qRels))
+      val oR = findRank(newTrueScores.filter(_.runId == s.runId).head, newTrueScores)
       val nR = findRank(s, newTrueScores.filter(_.runId != s.runId))
       Math.abs(oR - nR)
     }).sum
   }
 
-  def relativeSystemRankError(testScores: List[Score], lRuns:List[Runs], pValues: Map[String, Double]): Int = {
+  /*@deprecated
+  private def relativeSystemRankError(testScores: List[Score], lRuns:List[Runs], pValues: Map[String, Double]): Int = {
     def getPValue(runId1: String, runId2: String) = {
-      pValues.getOrElse(runId1 + runId2, pValues.get(runId2 + runId1).getOrElse(
+      pValues.getOrElse(runId1 + runId2, pValues.getOrElse(runId2 + runId1,
         pValues.get(runId2.toLowerCase() + runId1.toLowerCase()).getOrElse(
           pValues.get(runId1.toLowerCase() + runId2.toLowerCase()).getOrElse({
             println("Warning in systemRankError: " + runId1 + " " + runId2 + " doesn't exist!")
@@ -79,7 +84,9 @@ null, metric: String = null) {
     }
     testScores.map(s => {
       val oR = findRank(trueScoresMap.get(s.runId).get, trueScores)
-      val newTrueScores = lRuns.map(runs => new Score(runs.id, TRECEval().computeMetric(s.metric, runs, s.qRels), s.metric, s.qRels))
+      val newTrueScores = lRuns.map(runs => new DetailedScore(runs.id,
+        TRECEval().computeMetric(s.metric, runs, s.qRels),
+        TRECEval().computeMetricPerTopic(s.metric, runs, s.qRels), s.metric, s.qRels))
       val nR = findRank(s, newTrueScores.filter(_.runId != s.runId))
       val nTrueScoresWithRank = withRank(newTrueScores).filter(e => e._1.runId != s.runId)
       nTrueScoresWithRank.filter(swr =>
@@ -87,25 +94,46 @@ null, metric: String = null) {
           (oR < swr._2 && swr._2 <= nR))
         .filter(r => getPValue(s.runId, r._1.runId) < 0.05d).size
     }).sum
+  }*/
+
+  protected def getPValue(scoresRun1: Map[Int, Double], scoresRun2: Map[Int, Double]) = {
+    val tIds = scoresRun1.filter(e => !e._2.isNaN).keySet.intersect(scoresRun2.filter(e => !e._2.isNaN).keySet)
+    val sampleRun1 = scoresRun1.filter(e => tIds.contains(e._1)).toArray.sortBy(_._1).map(_._2)
+    val sampleRun2 = scoresRun2.filter(e => tIds.contains(e._1)).toArray.sortBy(_._1).map(_._2)
+    tTest.pairedTTest(sampleRun1, sampleRun2)
   }
 
-  def systemRankError(testScores: List[Score], pValues: Map[String, Double]): Int = {
-    def getPValue(runId1: String, runId2: String) = {
-      pValues.getOrElse(runId1 + runId2, pValues.get(runId2 + runId1).getOrElse(
-        pValues.get(runId2.toLowerCase() + runId1.toLowerCase()).getOrElse(
-          pValues.get(runId1.toLowerCase() + runId2.toLowerCase()).getOrElse({
-        println("Warning in systemRankError: " + runId1 + " " + runId2 + " doesn't exist!")
-        1d
-      }))))
-    }
+  def systemRankErrorStar(testScores: List[Score]): Int = {
     testScores.map(s => {
-      val oR = findRank(trueScoresMap.get(s.runId).get, trueScores)
+      val oR = findRank(trueScoresMap(s.runId), trueScores)
       val nR = findRank(s, trueScores.filter(_.runId != s.runId))
       val nTrueScoresWithRank = withRank(trueScores).filter(e => e._1.runId != s.runId)
       nTrueScoresWithRank.filter(swr =>
         (nR <= swr._2 && swr._2 < oR) ||
           (oR < swr._2 && swr._2 <= nR))
-        .filter(r => getPValue(s.runId, r._1.runId) < 0.05d).size
+        .count(r => getPValue(trueScoresMap(s.runId).topicScores, trueScoresMap(r._1.runId).topicScores) < 0.05d)
+    }).sum
+  }
+
+  def relativeSystemRankErrorStar(testScores: List[Score], lRuns:List[Runs]): Int = {
+    testScores.map(s => {
+      val newTrueScores = lRuns.map(runs => new DetailedScore(runs.id,
+        TRECEval().computeMetric(s.metric, runs, s.qRels),
+        TRECEval().computeMetricPerTopic(s.metric, runs, s.qRels), s.metric, s.qRels))
+      val oR = findRank(newTrueScores.filter(_.runId == s.runId).head, newTrueScores)
+      val nR = findRank(s, newTrueScores.filter(_.runId != s.runId))
+      val nTestScoresWithRank = withRank(testScores).filter(e => e._1.runId != s.runId)
+      val nTrueScoresWithRank = withRank(newTrueScores).filter(e => e._1.runId != s.runId)
+      Math.min(
+        nTrueScoresWithRank.filter(swr =>
+          (nR <= swr._2 && swr._2 < oR) ||
+            (oR < swr._2 && swr._2 <= nR))
+          .count(r => getPValue(trueScoresMap(s.runId).topicScores, trueScoresMap(r._1.runId).topicScores) < 0.05d),
+        nTestScoresWithRank.filter(swr =>
+          (nR <= swr._2 && swr._2 < oR) ||
+            (oR < swr._2 && swr._2 <= nR))
+          .count(r => getPValue(trueScoresMap(s.runId).topicScores, trueScoresMap(r._1.runId).topicScores) < 0.05d)
+      )
     }).sum
   }
 
@@ -126,22 +154,10 @@ null, metric: String = null) {
     val mae = this.meanAbsoluteError(scores)
     printReportError("MAE", ("%1.4f" format round(mae._1)) + " " +  ("±%1.4f" format round(mae._2)))
     printReportError("SRE", this.systemRankError(scores).toString)
-    if (pValuesDir != null) {
-      val pValuesFile = new File(pValuesDir, "pValues." + metric + ".csv")
-      if (pValuesFile.exists()) {
-        val pValues: Map[String, Double] = Source.fromFile(pValuesFile).getLines().map(_.split(",")).filter(_.size == 3).map(a => (a(0).replace("input.", "") + a(1).replace("input.", "") -> a(2).toDouble)).toMap
-        printReportError("SRE*", this.systemRankError(scores, pValues) + "\tp<0.05")
-      }
-    }
+    printReportError("SRE*", this.systemRankErrorStar(scores) + "\t(paired t-test p<0.05)")
     printReportError("RSRE", this.relativeSystemRankError(scores, scoreEstimator.pool.lRuns).toString)
-    if (pValuesDir != null) {
-      val pValuesFile = new File(pValuesDir, "pValues." + metric + ".csv")
-      if (pValuesFile.exists()) {
-        val pValues: Map[String, Double] = Source.fromFile(pValuesFile).getLines().map(_.split(",")).filter(_.size == 3).map(a => (a(0).replace("input.", "") + a(1).replace("input.", "") -> a(2).toDouble)).toMap
-        printReportError("RSRE*", this.relativeSystemRankError(scores, scoreEstimator.pool.lRuns, pValues) + "\tp<0.05")
-      }
-    }
-    printReportError("KTauB", ("%1.4f" format round(this.kendallsCorrelation(scores))))
+    printReportError("RSRE*", this.relativeSystemRankErrorStar(scores, scoreEstimator.pool.lRuns) + "\t(paired t-test p<0.05)")
+    printReportError("KTauB", "%1.4f" format round(this.kendallsCorrelation(scores)))
     println("")
   }
 
@@ -201,16 +217,14 @@ null, metric: String = null) {
     }
   }
 
-  def avg(xs: Seq[Double]) = xs.sum / xs.size
+  private def avg(xs: Seq[Double]) = xs.sum / xs.size
 
-  def first(xs: Seq[Double]) = xs.sum / xs.size
+  private def avgCI(xs:Seq[Double]) = 1.96d * Math.sqrt((avg(xs.map(x => x*x)) - Math.pow(avg(xs),2)) / xs.size)
 
-  def avgCI(xs:Seq[Double]) = 1.96d * Math.sqrt((avg(xs.map(x => x*x)) - Math.pow(avg(xs),2)) / xs.size)
-
-  def round(num: Double) = Math.round(num * 10000).toDouble / 10000
+  private def round(num: Double) = Math.round(num * 10000).toDouble / 10000
 
   private def withRank(scores: List[Score]): List[(Score, Int)] = {
     val ss = scores.sortBy(_.runId).reverse.sortBy(-_.score)
-    ss.zip(1 to ss.size).toList
+    ss.zip(1 to ss.size)
   }
 }

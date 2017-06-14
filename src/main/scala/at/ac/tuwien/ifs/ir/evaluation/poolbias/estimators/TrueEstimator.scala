@@ -14,9 +14,10 @@ class TrueEstimator(pool:Pool, metric: String, descs: Descs = null) extends Scor
   override def isMetricSupported(metric:String) = true
 
   override def getScore(ru: Runs): Score = {
-    new Score(ru.id, M(ru), metric, pool.qRels)
+    new DetailedScore(ru.id, M(ru), MT(ru), metric, pool.qRels)
   }
 
+  @deprecated
   override def getScoresPerQuery(ru: Runs, getScore: (Runs, Pool) => Score = getScore): List[(Int, Score)] = {
     def getRunsOnly(ru: Runs, tId: Int): Runs = {
       val sru: Run = ru.runsMapByTopicId.getOrElse(tId, new Run(tId, List()))
@@ -37,12 +38,18 @@ class TrueEstimator(pool:Pool, metric: String, descs: Descs = null) extends Scor
 
   override def getAllScoresL1OO(): List[Score] = {
     val olRuns = descs.getRunsPerOrganization(pool.lRuns) // wrong
-    olRuns.map(slRuns => {
-      val nlRuns = ScoreEstimator.excludeRuns(slRuns, pool.lRuns)
-      slRuns.map(runs => {
-        val nPool = pool.getNewInstance(nlRuns :+ runs)
-        getScore(runs, nPool)})
-    }).flatten
+    olRuns.flatMap(slRuns => {
+      // optimization: there is no need for a repool if there is no other run in the organization to remove
+      if(slRuns.size == 1){
+        List(getScore(slRuns.head, pool))
+      }else {
+        val nlRuns = ScoreEstimator.excludeRuns(slRuns, pool.lRuns)
+        slRuns.map(runs => {
+          val nPool = pool.getNewInstance(nlRuns :+ runs)
+          getScore(runs, nPool)
+        })
+      }
+    })
   }
 
   override def getAllScoresPerQueryL1RO: List[List[(Int, Score)]] = {
@@ -53,12 +60,18 @@ class TrueEstimator(pool:Pool, metric: String, descs: Descs = null) extends Scor
 
   override def getAllScoresPerQueryL1OO(): List[List[(Int, Score)]] = {
     val olRuns = descs.getRunsPerOrganization(pool.lRuns)//wrong
-    olRuns.map(slRuns => {
-      val nlRuns = ScoreEstimator.excludeRuns(slRuns, pool.lRuns)
-      slRuns.map(runs => {
-        val nPool = pool.getNewInstance(nlRuns :+ runs)
-        getScoresPerQuery(runs, nPool)})
-    }).flatten
+    olRuns.flatMap(slRuns => {
+      // optimization: there is no need for a repool if there is no other run in the organization to remove
+      if(slRuns.size == 1){
+       List(getScoresPerQuery(slRuns.head, pool))
+      }else {
+        val nlRuns = ScoreEstimator.excludeRuns(slRuns, pool.lRuns)
+        slRuns.map(runs => {
+          val nPool = pool.getNewInstance(nlRuns :+ runs)
+          getScoresPerQuery(runs, nPool)
+        })
+      }
+    })
   }
 
   override def getName = "True"

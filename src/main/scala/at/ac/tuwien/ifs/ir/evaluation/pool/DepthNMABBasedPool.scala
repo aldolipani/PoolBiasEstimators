@@ -16,9 +16,9 @@ class DepthNMABBasedPool(m: String, depth:Int, c1: Double, c2: Double, sizePool:
 
   override def getName = DepthNMABBasedPool.getName(m, depth, c1, c2, sizePool)
 
-  override def getPooledDocuments(topicId: Int): Set[Document] = DepthNMABBasedPool.getPooledDocuments(m, depth, c1, c2, topicSizes, lRuns, gT)(topicId)
+  //override def getPooledDocuments(topicId: Int): Set[Document] = DepthNMABBasedPool.getPooledDocuments(m, depth, c1, c2, estimatedNDs, lRuns, gT)(topicId)
 
-  override def getNewInstance(lRuns: List[Runs]): Pool = MABBasedPool(m, c1, c2, sizePool, lRuns, gT)
+  override def getNewInstance(lRuns: List[Runs]): Pool = DepthNMABBasedPool(m, depth, c1, c2, sizePool, lRuns, gT)
 
 }
 

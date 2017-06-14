@@ -26,21 +26,27 @@ object Runs {
   val runsIDs = scala.collection.mutable.Set[String]()
 
   def fromFile(name: String): Runs = {
-    //println(name)
     fromLines(Source.fromFile(name).getLines(), name.replaceAllLiterally("input.", ""))
   }
 
   def fromFile(file: File): Runs = {
-    //println(file.getName)
     fromLines(Source.fromFile(file).getLines(), file.getName.replaceAllLiterally("input.", ""))
   }
+
   def fromLines(iterator: Iterator[String], tmpId:String = ""): Runs = {
-    //println(tmpId)
     val group = iterator.withFilter(_.nonEmpty).map(e => {
       val es = e.trim.split("\\s+")
       if (es.size > 6) es.take(6) else es
     }).toList.groupBy(_.last)
     fromListOfItems(group.values.head, tmpId)
+  }
+
+  def fromLines2(iterator: Iterator[String], tmpId:String = ""): Runs = {
+    val list = iterator.withFilter(_.nonEmpty).map(e => {
+      val es = e.trim.split("\\s+")
+      if (es.size > 6) es.take(6) else es
+    }).toList
+    fromListOfItems(list, tmpId)
   }
 
   def fromListOfItems(list: List[Array[String]], tmpId:String = ""): Runs = {

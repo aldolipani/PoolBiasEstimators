@@ -65,11 +65,13 @@ object Run {
   }
 
   def normalizeRawRank(list: List[Array[String]]): List[Array[String]] = {
-    val sList = list.sortBy(e => e(2)).reverse.sortBy(e => -e(4).toFloat)
-    (1 to sList.size).foldRight(sList)((i, sList) => {
-      sList(i - 1).update(3, i.toString)
-      sList
-    })
+    val ordering: Ordering[(Float, String)] = Ordering.Tuple2(Ordering.Float.reverse, Ordering.String.reverse)
+    val sList = list.sortBy(e => (e(4).toFloat, e(2).trim))(ordering)
+    val sListNaN = sList.takeWhile(e => e(4).toFloat.isNaN)
+    val cList = sList.drop(sListNaN.size) ::: sListNaN
+    cList.zipWithIndex.map(e => {
+      e._1(3) = (e._2 + 1).toString
+      e._1})
   }
 
   def normalizeRank(runRecords: List[RunRecord]): List[RunRecord] = {

@@ -15,7 +15,7 @@ class BordaBasedPool(poolSize: Int, lRuns: List[Runs], gT: QRels) extends FixedS
 
   override lazy val qRels: QRels = PoolConverter.repoolToBordaBased(poolSize, lRuns, gT)
 
-  override def getPooledDocuments(topicId: Int): Set[Document] = BordaBasedPool.getPooledDocuments(topicSizes, lRuns, gT)(topicId)
+  //override def getPooledDocuments(topicId: Int): Set[Document] = BordaBasedPool.getPooledDocuments(estimatedNDs, lRuns, gT)(topicId)
 
   override def getNewInstance(lRuns: List[Runs]): Pool = BordaBasedPool(poolSize, lRuns, gT)
 

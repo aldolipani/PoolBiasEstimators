@@ -15,7 +15,7 @@ class UnsupportedBasedPool(cmd: String, lRuns: List[Runs], gT: QRels) extends Po
 
   override lazy val qRels: QRels = PoolConverter.repoolToUnsupportedBased(cmd, lRuns, gT)
 
-  override def getPooledDocuments(topicId: Int): Set[Document] = qRels.topicQRels(topicId).qrelRecords.map(_.document).toSet
+  //override def getPooledDocuments(topicId: Int): Set[Document] = qRels.topicQRels(topicId).qrelRecords.map(_.document).toSet
 
   override def getNewInstance(lRuns: List[Runs]): Pool = UnsupportedBasedPool(cmd, lRuns, gT)
 

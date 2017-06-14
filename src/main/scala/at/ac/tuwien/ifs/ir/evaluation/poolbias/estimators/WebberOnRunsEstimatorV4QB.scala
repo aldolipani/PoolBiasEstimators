@@ -1,27 +1,27 @@
 package at.ac.tuwien.ifs.ir.evaluation.poolbias.estimators
 
+import at.ac.tuwien.ifs.ir.evaluation.TRECEval
 import at.ac.tuwien.ifs.ir.evaluation.pool.Pool
 import at.ac.tuwien.ifs.ir.evaluation.poolbias.estimators.bin.Main.L1xo
 import at.ac.tuwien.ifs.ir.evaluation.poolbias.estimators.bin.Main.L1xo._
-import at.ac.tuwien.ifs.ir.evaluation.TRECEval
-import at.ac.tuwien.ifs.ir.model.{Descs, QRels, Runs, Score}
+import at.ac.tuwien.ifs.ir.model.{Descs, Runs, Score}
 
 /**
   * Created by aldo on 17/10/16.
   */
 
-class WebberOnRunsEstimatorV3QB(pool: Pool, metric: String, descs: Descs = null, l1xo: L1xo = L1xo.run) extends WebberOnRunsEstimatorV3(pool, metric, descs, l1xo) {
+class WebberOnRunsEstimatorV4QB(pool: Pool, metric: String, descs: Descs = null, l1xo: L1xo = L1xo.run) extends WebberOnRunsEstimatorV4(pool, metric, descs, l1xo) {
 
   override def isMetricSupported(metric: String) =
     metric.startsWith("recall_")
 
   override def getName =
     if (l1xo == L1xo.run)
-      "WebberOnRunsV3QB"
+      "WebberOnRunsV4QB"
     else
-      "WebberOnRunsV3QBL1OO"
+      "WebberOnRunsV4QBL1OO"
 
-  override def getNewInstance(pool: Pool) = new WebberOnRunsEstimatorV3QB(pool, metric, descs)
+  override def getNewInstance(pool: Pool) = new WebberOnRunsEstimatorV4QB(pool, metric, descs)
 
   override def getScore(ru: Runs): Score = {
     if (metric.startsWith("recall_")) {
@@ -33,8 +33,9 @@ class WebberOnRunsEstimatorV3QB(pool: Pool, metric: String, descs: Descs = null,
   }
 }
 
-object WebberOnRunsEstimatorV3QB {
 
-  def apply(pool: Pool, metric: String, descs: Descs, l1xo: L1xo = L1xo.run) = new WebberOnRunsEstimatorV3QB(pool, metric, descs, l1xo)
+object WebberOnRunsEstimatorV4QB {
+
+  def apply(pool: Pool, metric: String, descs: Descs, l1xo: L1xo = L1xo.run) = new WebberOnRunsEstimatorV4QB(pool, metric, descs, l1xo)
 
 }

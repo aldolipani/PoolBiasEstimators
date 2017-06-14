@@ -20,6 +20,8 @@ class QRels(val id: String, val qRels: Seq[QRel]) {
 
   def getRel(idTopic: Int, document: Document) = topicQRels(idTopic).getRel(document)
 
+  def getTopicQRels(idTopic: Int):QRels = new QRels(id + "#" + idTopic, Seq(topicQRels(idTopic)))
+
   lazy val inverse = new QRels("inv" + id, {
     qRels.map(qR => {
       new QRel(

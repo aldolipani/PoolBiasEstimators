@@ -2,15 +2,13 @@ package at.ac.tuwien.ifs.ir.evaluation.poolbias.estimators
 
 import java.io.File
 
-import at.ac.tuwien.ifs.io.TXTFile
 import at.ac.tuwien.ifs.ir.evaluation.TRECEval
-import at.ac.tuwien.ifs.ir.evaluation.pool.PoolAnalyzerType.PoolAnalyzerType
 import at.ac.tuwien.ifs.ir.evaluation.pool._
 import at.ac.tuwien.ifs.ir.evaluation.poolbias.estimators.bin.Main.L1xo
 import at.ac.tuwien.ifs.ir.evaluation.poolbias.estimators.bin.Main.L1xo._
 import at.ac.tuwien.ifs.ir.evaluation.poolbias.estimators.bin.Main.PrintOut
 import at.ac.tuwien.ifs.ir.evaluation.poolbias.estimators.bin.Main.PrintOut._
-import at.ac.tuwien.ifs.ir.model.{Descs, QRels, Runs}
+import at.ac.tuwien.ifs.ir.model.{Descs, DetailedScore, QRels, Runs}
 
 /**
  * Created by aldo on 10/10/14.
@@ -19,8 +17,8 @@ import at.ac.tuwien.ifs.ir.model.{Descs, QRels, Runs}
 class Analysis(val metrics:List[String], val estimators:List[String]) extends Command{
 
 
-  def computeAll(trecRelFile: File, trecRunsDir: File, descRunsFile: File, pValuesDir: File, l1xo: L1xo, top75Runs: Boolean, toPool:String, sizeRuns:Int, poolAnalyzerType:String) {
-    printParameters(trecRelFile, trecRunsDir, descRunsFile, pValuesDir, toPool, poolAnalyzerType)
+  def computeAll(trecRelFile: File, trecRunsDir: File, descRunsFile: File, l1xo: L1xo, top75Runs: Boolean, toPool:String, sizeRuns:Int, poolAnalyzerType:String) {
+    printParameters(trecRelFile, trecRunsDir, descRunsFile, toPool, poolAnalyzerType)
 
     val lRuns = getListRuns(trecRunsDir)
     val qRels = getQRels(trecRelFile)
@@ -53,14 +51,14 @@ class Analysis(val metrics:List[String], val estimators:List[String]) extends Co
 
     for (metric <- metrics){
       if(!top75Runs)
-        computeRuns(depthNPool, nPool, descs, metric, pValuesDir, l1xo, PrintOut.all)
+        computeRuns(depthNPool, nPool, descs, metric, l1xo, PrintOut.all)
       else
-        compute75TopRuns(depthNPool, nPool, descs, metric, pValuesDir, l1xo, PrintOut.all)
+        compute75TopRuns(depthNPool, nPool, descs, metric, l1xo, PrintOut.all)
     }
   }
 
-  def analyzePool(trecRelFile: File, trecRunsDir: File, descRunsFile: File, pValuesDir: File, l1xo: L1xo, top75Runs: Boolean, toPool:String, poolAnalyzerType: String) {
-    printParameters(trecRelFile, trecRunsDir, descRunsFile, pValuesDir, toPool, poolAnalyzerType)
+  def analyzePool(trecRelFile: File, trecRunsDir: File, descRunsFile: File, l1xo: L1xo, top75Runs: Boolean, toPool:String, poolAnalyzerType: String) {
+    printParameters(trecRelFile, trecRunsDir, descRunsFile, toPool, poolAnalyzerType)
 
     val lRuns = getListRuns(trecRunsDir)
     val qRels = getQRels(trecRelFile)
@@ -120,7 +118,7 @@ class Analysis(val metrics:List[String], val estimators:List[String]) extends Co
     }*/
   }
 
-  def computeEstimatesAll(trecRelFile: File, trecRunsDir: File, trecRunFile:File, descRunsFile: File, pValuesDir: File, toPool:String, poolAnalyzerType: String) {
+  def computeEstimatesAll(trecRelFile: File, trecRunsDir: File, trecRunFile:File, descRunsFile: File, toPool:String, poolAnalyzerType: String) {
     printParameters(trecRelFile, trecRunsDir, trecRunFile, toPool,poolAnalyzerType)
 
     val lRuns = getListRuns(trecRunsDir)
@@ -146,13 +144,13 @@ class Analysis(val metrics:List[String], val estimators:List[String]) extends Co
     }
 
     for (metric <- metrics){
-      computeEstimatesForRuns(nPool, runs, metric, pValuesDir)
-      computeEstimatesFor75TopRuns(nPool, runs, metric, pValuesDir)
+      computeEstimatesForRuns(nPool, runs, metric)
+      computeEstimatesFor75TopRuns(nPool, runs, metric)
     }
   }
 
-  def computeOnlyErrors(trecRelFile: File, trecRunsDir: File, descRunsFile: File, pValuesDir: File, l1xo: L1xo, top75Runs: Boolean = false, poolAnalyzerType: String) = {
-    printParameters(trecRelFile, trecRunsDir, descRunsFile, pValuesDir, "", poolAnalyzerType)
+  def computeOnlyErrors(trecRelFile: File, trecRunsDir: File, descRunsFile: File, l1xo: L1xo, top75Runs: Boolean = false, poolAnalyzerType: String) = {
+    printParameters(trecRelFile, trecRunsDir, descRunsFile, "", poolAnalyzerType)
 
     val lRuns = getListRuns(trecRunsDir)
     val qRels = getQRels(trecRelFile)
@@ -170,13 +168,13 @@ class Analysis(val metrics:List[String], val estimators:List[String]) extends Co
     System.setProperty("pool.depth", poolAnalyser.d + "")
     //*****
     for (metric <- metrics) {
-      if (!top75Runs) computeRuns(depthNPool, pool, descs, metric, pValuesDir, l1xo, PrintOut.onlyErrors)
-      else compute75TopRuns(depthNPool, pool, descs, metric, pValuesDir, l1xo, PrintOut.onlyErrors)
+      if (!top75Runs) computeRuns(depthNPool, pool, descs, metric, l1xo, PrintOut.onlyErrors)
+      else compute75TopRuns(depthNPool, pool, descs, metric, l1xo, PrintOut.onlyErrors)
     }
   }
 
-  def computeOnlyRuns(trecRelFile: File, trecRunsDir: File, descRunsFile: File, pValuesDir: File, l1xo: L1xo, top75Runs: Boolean = false, poolAnalyzerType: String) = {
-    printParameters(trecRelFile, trecRunsDir, descRunsFile, pValuesDir, "",poolAnalyzerType)
+  def computeOnlyRuns(trecRelFile: File, trecRunsDir: File, descRunsFile: File, l1xo: L1xo, top75Runs: Boolean = false, poolAnalyzerType: String) = {
+    printParameters(trecRelFile, trecRunsDir, descRunsFile, "",poolAnalyzerType)
 
     val lRuns = getListRuns(trecRunsDir)
     val qRels = getQRels(trecRelFile)
@@ -196,8 +194,8 @@ class Analysis(val metrics:List[String], val estimators:List[String]) extends Co
     System.setProperty("pool.depth", poolAnalyser.d + "")
     //*****
     for (metric <- metrics) {
-      if (!top75Runs) computeRuns(depthNPool, pool, descs, metric, pValuesDir, l1xo, PrintOut.onlyRuns)
-      else compute75TopRuns(depthNPool, pool, descs, metric, pValuesDir, l1xo, PrintOut.onlyRuns)
+      if (!top75Runs) computeRuns(depthNPool, pool, descs, metric, l1xo, PrintOut.onlyRuns)
+      else compute75TopRuns(depthNPool, pool, descs, metric, l1xo, PrintOut.onlyRuns)
     }
   }
 
@@ -212,12 +210,12 @@ class Analysis(val metrics:List[String], val estimators:List[String]) extends Co
   private def isL1oo(l1xo:L1xo):Boolean = l1xo == organization || l1xo == both
 
 
-  private def computeRuns(gPool:DepthNPool, pool:Pool, descs: Descs, metric: String, pValuesDir: File, l1xo: L1xo = L1xo.both, printOut:PrintOut = PrintOut.all) = {
-    compute(gPool, pool, descs, metric, pValuesDir, l1xo, printOut)
+  private def computeRuns(gPool:DepthNPool, pool:Pool, descs: Descs, metric: String, l1xo: L1xo = L1xo.both, printOut:PrintOut = PrintOut.all) = {
+    compute(gPool, pool, descs, metric, l1xo, printOut)
   }
 
-  private def computeEstimatesForRuns(pool:Pool, runs:Runs, metric: String, pValuesDir: File) = {
-    computeEstimates(pool:Pool, runs, metric, pValuesDir)
+  private def computeEstimatesForRuns(pool:Pool, runs:Runs, metric: String) = {
+    computeEstimates(pool:Pool, runs, metric)
   }
 
   private def get75TopLRuns(pool:Pool, metric: String): List[Runs] = {
@@ -227,40 +225,40 @@ class Analysis(val metrics:List[String], val estimators:List[String]) extends Co
         .map(_.runId), pool.lRuns)
   }
 
-  private def compute75TopRuns(gPool:DepthNPool, pool:Pool, descs: Descs, metric: String, pValuesDir: File, l1xo: L1xo = L1xo.both, printOut:PrintOut = PrintOut.all) = {
+  private def compute75TopRuns(gPool:DepthNPool, pool:Pool, descs: Descs, metric: String, l1xo: L1xo = L1xo.both, printOut:PrintOut = PrintOut.all) = {
     val pooled75TopRuns = get75TopLRuns(gPool, metric)
     println("Only 75% Top Best Runs: " + pooled75TopRuns.size)
     val nPool = pool.getNewInstance(pooled75TopRuns)
     val nGPool = gPool.getNewInstance(pooled75TopRuns).asInstanceOf[DepthNPool]
-    compute(nGPool, nPool, descs, metric, pValuesDir, l1xo, printOut)
+    compute(nGPool, nPool, descs, metric, l1xo, printOut)
   }
 
-  private def computeEstimatesFor75TopRuns(pool:Pool, runs: Runs, metric: String, pValuesDir: File) = {
+  private def computeEstimatesFor75TopRuns(pool:Pool, runs: Runs, metric: String) = {
     val pooled75TopRuns = get75TopLRuns(pool, metric)
     println("Only 75% Top Best Runs: " + pooled75TopRuns.size)
     val nPool = pool.getNewInstance(pooled75TopRuns)
-    computeEstimates(nPool, runs, metric, pValuesDir)
+    computeEstimates(nPool, runs, metric)
   }
 
-  private def compute(gPool:DepthNPool, pool:Pool, descs: Descs, metric: String, pValuesDir: File, l1xo:L1xo, printOut:PrintOut = PrintOut.all) = {
+  private def compute(gPool:DepthNPool, pool:Pool, descs: Descs, metric: String, l1xo:L1xo, printOut:PrintOut = PrintOut.all) = {
     println("Metric\t" + metric)
     val estimators = getEstimators(gPool, pool, descs, metric)
 
     if (isL1ro(l1xo))
-      computeL1ro(estimators, metric, pValuesDir, printOut)
+      computeL1ro(estimators, metric, printOut)
 
     if (descs != null && isL1oo(l1xo))
-      computeL1oo(estimators, metric, pValuesDir, printOut)
+      computeL1oo(estimators, metric, printOut)
   }
 
-  private def computeEstimates(pool:Pool, runs:Runs, metric: String, pValuesDir: File) = {
+  private def computeEstimates(pool:Pool, runs:Runs, metric: String) = {
     println("Metric\t" + metric)
     val estimators = getEstimators(pool.asInstanceOf[DepthNPool], pool, descs = null, metric)
     estimators.map(_.printScore(runs))
     println("")
   }
 
-  private def computeL1ro(estimators: List[ScoreEstimator], metric:String, pValuesDir: File, printOut:PrintOut = all) = {
+  private def computeL1ro(estimators: List[ScoreEstimator], metric:String, printOut:PrintOut = all) = {
     println("Leave one RUN out approach")
 
     if(isOnlyRuns(printOut))
@@ -268,16 +266,15 @@ class Analysis(val metrics:List[String], val estimators:List[String]) extends Co
 
     if(isOnlyErrors(printOut)) {
       val scoresError = new ScoresError(
-        estimators.filter(_.isInstanceOf[TrueEstimator]).head.getAllScores(L1xo.run),
+        estimators.filter(_.isInstanceOf[TrueEstimator]).head.getAllScores(L1xo.run).map(_.asInstanceOf[DetailedScore]),
         estimators.filter(_.isInstanceOf[TrueEstimator]).head.getAllScoresPerQuery(L1xo.run),
-        pValuesDir,
         metric)
       for(e <- estimators.filter(!_.isInstanceOf[TrueEstimator]))
         scoresError.printReportErrors(e, L1xo.run)
     }
   }
 
-  private def computeL1oo(estimators: List[ScoreEstimator], metric:String, pValuesDir: File, printOut:PrintOut = all) = {
+  private def computeL1oo(estimators: List[ScoreEstimator], metric:String, printOut:PrintOut = all) = {
     println("Leave one ORGANIZATION out approach")
 
     if(isOnlyRuns(printOut))
@@ -285,9 +282,8 @@ class Analysis(val metrics:List[String], val estimators:List[String]) extends Co
 
     if(isOnlyErrors(printOut)) {
       val scoresError = new ScoresError(
-        estimators.filter(_.isInstanceOf[TrueEstimator]).head.getAllScores(L1xo.organization),
+        estimators.filter(_.isInstanceOf[TrueEstimator]).head.getAllScores(L1xo.organization).map(_.asInstanceOf[DetailedScore]),
         estimators.filter(_.isInstanceOf[TrueEstimator]).head.getAllScoresPerQuery(L1xo.organization),
-        pValuesDir,
         metric)
 
       estimators.filter(!_.isInstanceOf[TrueEstimator]).map(e =>
@@ -313,10 +309,12 @@ class Analysis(val metrics:List[String], val estimators:List[String]) extends Co
       List(TrueEstimator(oPool, metric, descs)) :::
         List(
           TrueEstimatorQB(oPool, metric, descs),                              //TrueQB
-          PoolEstimator(pool, metric, descs),                                 //Pool,,LipaniQB
+          PoolEstimator(pool, metric, descs),                                 //Pool
           PoolEstimatorQB(pool, metric, descs),                               //PoolQB
           WebberOnRunsEstimator(pool, metric, descs),                         //WebberOnRuns
           WebberOnRunsEstimator(pool, metric, descs, L1xo.organization),      //WebberOnRunsL1OO
+          WebberOnRunsEstimatorQB(pool, metric, descs),                       //WebberOnRunsQB
+          WebberOnRunsEstimatorQB(pool, metric, descs, L1xo.organization),    //WebberOnRunsQBL1OO
           WebberOnRunsEstimatorV2(pool, metric, descs),                       //WebberOnRunsV2 - CIKM
           WebberOnRunsEstimatorV2(pool, metric, descs, L1xo.organization),    //WebberOnRunsV2L1OO - CIKM
           WebberOnRunsEstimatorV2QB(pool, metric, descs),                     //WebberOnRunsV2QB
@@ -325,11 +323,14 @@ class Analysis(val metrics:List[String], val estimators:List[String]) extends Co
           WebberOnRunsEstimatorV3(pool, metric, descs, L1xo.organization),    //WebberOnRunsV3L1OO - CIKM
           WebberOnRunsEstimatorV3QB(pool, metric, descs),                     //WebberOnRunsV3QB
           WebberOnRunsEstimatorV3QB(pool, metric, descs, L1xo.organization),  //WebberOnRunsV3QBL1OO
+          WebberOnRunsEstimatorV4(pool, metric, descs),                       //WebberOnRunsV4
+          WebberOnRunsEstimatorV4(pool, metric, descs, L1xo.organization),    //WebberOnRunsV4L1OO
+          WebberOnRunsEstimatorV4QB(pool, metric, descs),                     //WebberOnRunsV4QB
+          WebberOnRunsEstimatorV4QB(pool, metric, descs, L1xo.organization),  //WebberOnRunsV4QBL1OO
           LipaniEstimator(pool, metric, descs),                               //Lipani - SIGIR
-          LipaniEstimatorQB(pool, metric, descs)                              //LipaniQB
-          //LipaniEstimatorV2QB(pool, metric, descs)
-          //LipaniEstimatorV2(pool, metric, descs),
-          //LipaniEstimatorV3(pool, metric, descs)
+          LipaniEstimatorQB(pool, metric, descs),                             //LipaniQB
+          LipaniEstimatorV2(pool, metric, descs),                             //LipaniV2
+          LipaniEstimatorV2QB(pool, metric, descs)                            //LipaniV2QB
         ).filter(e => e.isMetricSupported(metric) && estimators.contains(e.getName))
 
 
@@ -392,7 +393,7 @@ class Analysis(val metrics:List[String], val estimators:List[String]) extends Co
     println("")
   }
 
-  private def printParameters(trecRelFile: File, trecRunsDir:File, descRunsFile:File, pValuesDir:File, toPool:String,poolAnalyzerType:String): Unit ={
+  private def printParameters(trecRelFile: File, trecRunsDir:File, descRunsFile:File, toPool:String,poolAnalyzerType:String): Unit ={
     def printParameter(name:String, value:String) = System.out.format("%-15s\t%s\n", name, value)
     println("List Parameters")
     printParameter("metrics", metrics.mkString(","))
@@ -400,19 +401,6 @@ class Analysis(val metrics:List[String], val estimators:List[String]) extends Co
     printParameter("trec_rel_file", trecRelFile.getAbsolutePath)
     printParameter("trec_runs_dir", trecRunsDir.getAbsolutePath)
     if (descRunsFile != null) printParameter("desc_runs_file", descRunsFile.getAbsolutePath)
-    if (pValuesDir != null) printParameter("p_values_dir", pValuesDir.getAbsolutePath)
-    if (toPool != "") printParameter("toPoolingStrategy", toPool)
-    if (poolAnalyzerType != "") printParameter("poolAnalyzerType", poolAnalyzerType)
-    println("")
-  }
-
-
-  private def printParameters(trecRelFile: File, trecRunsDir:File, trecRunsFile:File, toPool:String, poolAnalyzerType:String): Unit ={
-    def printParameter(name:String, value:String) = System.out.format("%-10s\t%s\n", name, value)
-    println("List Parameters")
-    printParameter("trec_rel_file", trecRelFile.getAbsolutePath)
-    printParameter("trec_runs_dir", trecRunsDir.getAbsolutePath)
-    if (trecRunsFile != null) printParameter("trec_runs_file", trecRunsFile.getAbsolutePath)
     if (toPool != "") printParameter("toPoolingStrategy", toPool)
     if (poolAnalyzerType != "") printParameter("poolAnalyzerType", poolAnalyzerType)
     println("")

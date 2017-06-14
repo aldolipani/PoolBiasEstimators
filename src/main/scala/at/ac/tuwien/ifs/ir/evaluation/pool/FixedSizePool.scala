@@ -11,7 +11,7 @@ import scala.annotation.tailrec
   */
 class FixedSizePool(poolSize:Int, lRuns:List[Runs], gT:QRels) extends Pool(lRuns, gT) {
 
-  protected lazy val topicSizes = FixedSizePool.findTopicSizes(poolSize, lRuns, gT)
+  protected lazy val estimatedNDs = FixedSizePool.findTopicSizes(poolSize, lRuns, gT)
 
 }
 

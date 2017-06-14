@@ -39,6 +39,7 @@ object Main extends App {
                     poolAnalyzerType:String = "MODE",
                     discoverPooledRuns: Boolean = false,  //generatePool
                     interactivePool: Boolean = true,     //generatePool
+                    restore: Boolean = false,
                     httpPort: Int = 3737                  //generatePool
                    )
 
@@ -57,6 +58,9 @@ object Main extends App {
       opt[Int]("sizeRuns") optional() action { (x, c) =>
         c.copy(sizeRuns = x)
       } text ("if not provived 0 is default") //TODO
+      opt[Unit]("restore") action { (x, c) =>
+        c.copy(restore = true)
+      } text ("") //TODO
       opt[Unit]('r', "leaveOneRunOut") action { (x, c) =>
         c.copy(l1xo = L1xo.run)
       } text ("active the leave-one-run-out, only in analysis mode")
@@ -117,20 +121,19 @@ object Main extends App {
             config.httpPort )
         } else if(false){// TODO
           val analysis = Analysis(config.metrics, config.estimators)
-          analysis.analyzePool(config.trecRelFile, config.trecRunsDir, config.descRunsFile, config.pValuesDir, config.l1xo, config.top75Runs, config.toPool, config.poolAnalyzerType)
+          analysis.analyzePool(config.trecRelFile, config.trecRunsDir, config.descRunsFile, config.l1xo, config.top75Runs, config.toPool, config.poolAnalyzerType)
         } else {
           val analysis = Analysis(config.metrics, config.estimators)
           if (config.trecRunsFile == null) {
             if (config.printOut == PrintOut.onlyErrors)
-              analysis.computeOnlyErrors(config.trecRelFile, config.trecRunsDir, config.descRunsFile, config.pValuesDir, config.l1xo, config.top75Runs, config.poolAnalyzerType)
+              analysis.computeOnlyErrors(config.trecRelFile, config.trecRunsDir, config.descRunsFile, config.l1xo, config.top75Runs, config.poolAnalyzerType)
             else if (config.printOut == PrintOut.onlyRuns)
-              analysis.computeOnlyRuns(config.trecRelFile, config.trecRunsDir, config.descRunsFile, config.pValuesDir, config.l1xo, config.top75Runs, config.poolAnalyzerType)
+              analysis.computeOnlyRuns(config.trecRelFile, config.trecRunsDir, config.descRunsFile, config.l1xo, config.top75Runs, config.poolAnalyzerType)
             else
               analysis.computeAll(
                 config.trecRelFile,
                 config.trecRunsDir,
                 config.descRunsFile,
-                config.pValuesDir,
                 config.l1xo,
                 config.top75Runs,
                 config.toPool,
@@ -138,7 +141,7 @@ object Main extends App {
                 config.poolAnalyzerType
               )
           } else {
-            analysis.computeEstimatesAll(config.trecRelFile, config.trecRunsDir, config.trecRunsFile, config.descRunsFile, config.pValuesDir, config.toPool, config.poolAnalyzerType)
+            analysis.computeEstimatesAll(config.trecRelFile, config.trecRunsDir, config.trecRunsFile, config.descRunsFile, config.toPool, config.poolAnalyzerType)
           }
         }
       }

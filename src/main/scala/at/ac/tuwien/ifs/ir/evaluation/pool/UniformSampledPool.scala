@@ -11,7 +11,7 @@ class UniformSampledPool(val n:Int, val rate:Float, lRuns: List[Runs], gT: QRels
 
   override def getName = UniformSampledPool.getName(n, rate)
 
-  override def getPooledDocuments(topicId: Int): Set[Document] = UniformSampledPool.getPooledDocuments(n, rate, lRuns)(topicId)
+  //override def getPooledDocuments(topicId: Int): Set[Document] = UniformSampledPool.getPooledDocuments(n, rate, lRuns)(topicId)
 
   override def getNewInstance(lRuns: List[Runs]):Pool = UniformSampledPool(n, rate, lRuns, gT)
 

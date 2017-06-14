@@ -13,7 +13,7 @@ class StratifiedPool(stratas:List[Strata], lRuns: List[Runs], gT: QRels) extends
 
   override def getNewInstance(lRuns: List[Runs]):Pool = new StratifiedPool(stratas, lRuns, gT)
 
-  override def getPooledDocuments(topicId: Int): Set[Document] = StratifiedPool.getPooledDocuments(stratas, lRuns)(topicId)
+  //override def getPooledDocuments(topicId: Int): Set[Document] = StratifiedPool.getPooledDocuments(stratas, lRuns)(topicId)
 
 }
 

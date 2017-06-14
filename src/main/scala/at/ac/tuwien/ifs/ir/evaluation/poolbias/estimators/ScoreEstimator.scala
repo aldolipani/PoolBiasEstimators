@@ -26,8 +26,9 @@ abstract class ScoreEstimator(val pool: Pool, val metric: String, descs: Descs =
     for (tId <- pool.qRels.topicIds.toList.sorted if (ru.selectByTopicId(tId) != null)) yield {
       val nRu = getRunsOnly(ru, tId)
       val nLRuns = pool.lRuns.map(r => getRunsOnly(r, tId))
-      val nPool = pool.getNewInstance(nLRuns) //TODO: to check
-      (tId, getScore(nRu, nPool))
+      val nQRels = pool.qRels.getTopicQRels(tId)
+      //val nPool = pool.getNewInstance(nLRuns)
+      (tId, getScore(nRu, new Pool(nLRuns, nQRels)))
     }
   }
 
@@ -56,7 +57,7 @@ abstract class ScoreEstimator(val pool: Pool, val metric: String, descs: Descs =
   lazy val scoresPerQueryL1RO = getAllScoresPerQueryL1RO()
 
   protected def getAllScoresL1RO(): List[Score] = {
-    pool.lRuns./*par.*/map(runs => {
+    pool.lRuns. /*par.*/ map(runs => {
       val nlRuns = ScoreEstimator.excludeRuns(runs, pool.lRuns)
       val nPool = pool.getNewInstance(nlRuns)
       getScore(runs, nPool)
@@ -84,13 +85,13 @@ abstract class ScoreEstimator(val pool: Pool, val metric: String, descs: Descs =
 
   protected def getAllScoresPerQueryL1OO(): List[List[(Int, Score)]] = {
     val olRuns = descs.getRunsPerOrganization(pool.lRuns) // wrong
-    olRuns.map(slRuns => {
+    olRuns.flatMap(slRuns => {
       val nlRuns = ScoreEstimator.excludeRuns(slRuns, pool.lRuns)
       val nPool = pool.getNewInstance(nlRuns)
       slRuns.map(runs => {
         getScoresPerQuery(runs, nPool)
       })
-    }).flatten
+    })
   }
 
   def getNewInstance(pool: Pool): ScoreEstimator = ???
@@ -106,11 +107,11 @@ abstract class ScoreEstimator(val pool: Pool, val metric: String, descs: Descs =
     System.out.format("%-12s\t%s\n", getName, getScore(runs))
   }
 
-  def avg(x: Seq[Double]) = x.sum / x.size
+  protected def avg(x: Seq[Double]) = x.sum / x.size
 
-  def avg(x: Seq[Double], den: Double) = x.sum / den
+  protected def avg(x: Seq[Double], den: Double) = x.sum / den
 
-  def round(num: Double) = Math.round(num * 10000).toDouble / 10000
+  protected def round(num: Double) = Math.round(num * 10000).toDouble / 10000
 
   def M(ru: Runs, qRels: QRels = pool.qRels) =
     TRECEval().computeMetric(metric, ru, qRels)
@@ -118,6 +119,25 @@ abstract class ScoreEstimator(val pool: Pool, val metric: String, descs: Descs =
   def AM(ru: Runs, qRels: QRels = pool.qRels) =
     TRECEval().computeAntiMetric(metric, ru, qRels)
 
+  def MT(ru: Runs, qRels: QRels = pool.qRels) =
+    TRECEval().computeMetricPerTopic(metric, ru, qRels).map(e => {
+      if (ru.selectByTopicId(e._1) != null) {
+        e
+      } else {
+        e._1 -> Double.NaN
+      }
+    })
+
+  def AMT(ru: Runs, qRels: QRels = pool.qRels) =
+    TRECEval().computeAntiMetricPerTopic(metric, ru, qRels)
+
+  def filterOrganization(ru:Runs, lRuns:List[Runs], olRuns:List[List[Runs]]):List[Runs] = {
+    val sRuns = olRuns.find(_.map(_.id).contains(ru.id)).get
+    ScoreEstimator.excludeRuns(sRuns, lRuns)
+  }
+
+  def filterRun(ru:Runs, lRuns:List[Runs]):List[Runs] =
+    lRuns.filterNot(_.id == ru.id)
 }
 
 object ScoreEstimator {

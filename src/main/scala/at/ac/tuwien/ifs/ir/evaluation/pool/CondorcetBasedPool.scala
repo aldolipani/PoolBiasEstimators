@@ -14,7 +14,7 @@ class CondorcetBasedPool(poolSize: Int, lRuns: List[Runs], gT: QRels) extends Fi
 
   override lazy val qRels: QRels = PoolConverter.repoolToCondorcetBased(poolSize, lRuns, gT)
 
-  override def getPooledDocuments(topicId: Int): Set[Document] = CondorcetBasedPool.getPooledDocuments(topicSizes, lRuns, gT)(topicId)
+  //override def getPooledDocuments(topicId: Int): Set[Document] = CondorcetBasedPool.getPooledDocuments(estimatedNDs, lRuns, gT)(topicId)
 
   override def getNewInstance(lRuns: List[Runs]): Pool = CondorcetBasedPool(poolSize, lRuns, gT)
 

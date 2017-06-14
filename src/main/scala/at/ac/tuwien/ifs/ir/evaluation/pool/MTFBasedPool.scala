@@ -9,23 +9,23 @@ import scala.util.Random
   * Created by aldo on 29/03/16.
   */
 
-class MTFBasedPool(poolSize: Int, lRuns: List[Runs], gT: QRels) extends FixedSizePool(poolSize, lRuns, gT) {
+class MTFBasedPool(poolSize: Int, lRuns: List[Runs], gT: QRels, nDs:Option[Map[Int, Int]] = None) extends FixedSizePool(poolSize, lRuns, gT) {
 
-  override def getName = MTFBasedPool.getName(poolSize)
+  override def getName:String = MTFBasedPool.getName(poolSize)
 
-  override lazy val qRels: QRels = PoolConverter.repoolToMTFBased(poolSize, lRuns, gT)
+  override lazy val qRels: QRels = PoolConverter.repoolToMTFBased(poolSize, lRuns, gT, nDs getOrElse estimatedNDs)
 
-  override def getPooledDocuments(topicId: Int): Set[Document] = MTFBasedPool.getPooledDocuments(topicSizes, lRuns, gT)(topicId)
+  //override def getPooledDocuments(topicId: Int): Set[Document] = MTFBasedPool.getPooledDocuments(nDs getOrElse estimatedNDs, lRuns, gT)(topicId)
 
-  override def getNewInstance(lRuns: List[Runs]): Pool = MTFBasedPool(poolSize, lRuns, gT)
+  override def getNewInstance(lRuns: List[Runs]): Pool = MTFBasedPool(poolSize, lRuns, gT, nDs)
 
 }
 
 object MTFBasedPool {
 
-  def apply(poolSize: Int, lRuns: List[Runs], gT: QRels) = new MTFBasedPool(poolSize, lRuns, gT)
+  def apply(poolSize: Int, lRuns: List[Runs], gT: QRels, nDs:Option[Map[Int,Int]] = None) = new MTFBasedPool(poolSize, lRuns, gT, nDs)
 
-  def getName(poolSize: Int) = "mtfbased_" + poolSize
+  def getName(poolSize: Int):String = "mtfbased_" + poolSize
 
   def getPooledDocuments(nDs: Map[Int, Int], pRuns: List[Runs], qRels: QRels)(topicId: Int): Set[Document] = {
 

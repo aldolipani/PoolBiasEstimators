@@ -38,13 +38,13 @@ class TRECEval(tempDir: String = ".") {
       rbpw_p(p, rR.rank) else 0d).sum
 
   def ap(run: Run, qRel: QRel): Double = {
-      if (qRel.sizeRel != 0)
-        run.runRecords.map(rR =>
-          if (qRel.getRel(rR.document) > 0) {
-            p_n(rR.rank, run, qRel)
-          } else 0d).sum / qRel.sizeRel
-      else
-        0d
+    if (qRel.sizeRel != 0)
+      run.runRecords.map(rR =>
+        if (qRel.getRel(rR.document) > 0) {
+          p_n(rR.rank, run, qRel)
+        } else 0d).sum / qRel.sizeRel
+    else
+      0d
   }
 
   def dcg(run: Run, qRel: QRel): Double =
@@ -52,7 +52,7 @@ class TRECEval(tempDir: String = ".") {
       qRel.getRel(rR.document).toDouble / Math.log(rR.rank + 1) * Math.log(2) else 0d).sum
 
   def idcg(qRel: QRel): Double =
-    if(qRel.sizeRel != 0)
+    if (qRel.sizeRel != 0)
       qRel.qrelRecords.filter(_.rel > 0).sortBy(-_.rel).zipWithIndex.map(di =>
         di._1.rel.toDouble / Math.log(di._2 + 2) * Math.log(2)).sum
     else
@@ -76,16 +76,18 @@ class TRECEval(tempDir: String = ".") {
   )
 
   def map(runs: Runs, qRels: QRels): Double = avg(
-    runs.runs.withFilter(r => r != null && qRels.topicIds.contains(r.id)).map(run =>{
-      ap(run, qRels.topicQRels(run.id))}))
+    runs.runs.withFilter(r => r != null && qRels.topicIds.contains(r.id)).map(run => {
+      ap(run, qRels.topicQRels(run.id))
+    }))
 
   def ndcg(runs: Runs, qRels: QRels): Double = avg(
     runs.runs.withFilter(r => r != null && qRels.topicIds.contains(r.id)).map(run => {
       val den = idcg(qRels.topicQRels(run.id))
-      if(den != 0)
+      if (den != 0)
         dcg(run, qRels.topicQRels(run.id)) / den
       else
-        0d}))
+        0d
+    }))
 
   def p(n: Int, run: Run, qRel: QRel): Double =
     num_ret_rel(run, qRel).toDouble / n
@@ -111,6 +113,9 @@ class TRECEval(tempDir: String = ".") {
       recall(cut(n, runs), qRels) //, qRels.sizeTopics
     )
 
+  def computeMetricPerTopic(metric: String, runs: Runs, qRels: QRels): Map[Int, Double] =
+    qRels.qRels.map(qRel => (qRel.id -> computeMetric(metric, runs, qRels.getTopicQRels(qRel.id)))).toMap
+
   def computeMetric(metric: String, runs: Runs, qRels: QRels): Double = {
     if (metric.startsWith("P_")) {
       val n = metric.split("_").last.toInt
@@ -131,11 +136,18 @@ class TRECEval(tempDir: String = ".") {
       computeUnsupportedMetric(metric: String, runs: Runs, qRels: QRels)
   }
 
+  def computeUnsupportedMetricPerTopic(metric: String, runs: Runs, qRels: QRels) = {
+    qRels.qRels.map(qRel => (qRel.id -> {
+      computeUnsupportedMetric(metric, runs, qRels.getTopicQRels(qRel.id))
+    })).toMap
+  }
+
   def computeUnsupportedMetric(metric: String, runs: Runs, qRels: QRels): Double = {
     def getRandomString: String = {
       val rS = TRECEval.getRandomString
       if ((new File(tempDir, "runs." + rS)).exists) getRandomString else rS
     }
+
     val rS = getRandomString
     val runsP = new File(tempDir, "runs." + rS).getCanonicalPath
     val qRelsP = new File(tempDir, "qRels." + rS).getCanonicalPath
@@ -158,7 +170,14 @@ class TRECEval(tempDir: String = ".") {
     }
   }
 
+  def computeUnsupportedMetric(metric: String, runs: String, qRels: String): Double = {
+    TRECEval.computeMetric(metric, runs, qRels)
+  }
+
+
   def computeAntiMetric(metric: String, runs: Runs, qRels: QRels) = computeMetric(metric, runs, qRels.inverse)
+
+  def computeAntiMetricPerTopic(metric: String, runs: Runs, qRels: QRels) = computeMetricPerTopic(metric, runs, qRels.inverse)
 
   def computeMAP(runs: Runs, qRels: QRels) = computeMetric("map", runs, qRels)
 
@@ -210,7 +229,9 @@ class TRECEval(tempDir: String = ".") {
 
   def getScores(qRels: QRels, runs: List[Runs], metric: String): List[Score] =
     runs.map(run => {
-      val score = new Score(run.id, this.computeMetric(metric, run, qRels), metric, qRels)
+      val score = new Score(run.id,
+        this.computeMetric(metric, run, qRels),
+        metric, qRels)
       score
     })
 }

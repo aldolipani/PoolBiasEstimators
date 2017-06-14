@@ -13,9 +13,9 @@ import scala.util.Random
   */
 class UnsupportedFixedSizeBasedPool(cmd: String, poolSize: Int, lRuns: List[Runs], gT: QRels) extends FixedSizePool(poolSize, lRuns, gT) {
 
-  override lazy val qRels: QRels = PoolConverter.repoolToUnsupportedFixedSizeBased(cmd, topicSizes, lRuns, gT)
+  override lazy val qRels: QRels = PoolConverter.repoolToUnsupportedFixedSizeBased(cmd, estimatedNDs, lRuns, gT)
 
-  override def getPooledDocuments(topicId: Int): Set[Document] = qRels.topicQRels(topicId).qrelRecords.map(_.document).toSet
+  //override def getPooledDocuments(topicId: Int): Set[Document] = qRels.topicQRels(topicId).qrelRecords.map(_.document).toSet
 
   override def getNewInstance(lRuns: List[Runs]): Pool = UnsupportedFixedSizeBasedPool(cmd, poolSize, lRuns, gT)
 

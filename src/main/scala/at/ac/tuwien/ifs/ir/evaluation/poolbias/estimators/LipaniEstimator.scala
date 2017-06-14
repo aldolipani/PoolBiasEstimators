@@ -6,7 +6,7 @@ import at.ac.tuwien.ifs.ir.model._
 
 class LipaniEstimator(pool: Pool, metric: String, descs: Descs = null) extends ScoreEstimator(pool, metric, descs) {
 
-  override def isMetricSupported(metric:String):Boolean =
+  override def isMetricSupported(metric: String): Boolean =
     metric.startsWith("P_")
 
   implicit def shufflableRuns(runs: Runs) = new {
@@ -15,38 +15,43 @@ class LipaniEstimator(pool: Pool, metric: String, descs: Descs = null) extends S
     }
   }
 
-  protected def getAdjP(n:Int, ru: Runs, pool:Pool): Double = {
+  protected def getAdjP(n: Int, ru: Runs, pool: Pool): Double = {
     def M(ru: Runs, qRels: QRels = pool.qRels) =
-      TRECEval().computeMetric("P_"+n, ru, qRels)
+      TRECEval().computeMetric("P_" + n, ru, qRels)
 
     def AM(ru: Runs, qRels: QRels = pool.qRels) =
-      TRECEval().computeAntiMetric("P_"+n, ru, qRels)
+      TRECEval().computeAntiMetric("P_" + n, ru, qRels)
 
     val sru = M(ru)
     val asru = AM(ru)
-    val kru = 1 - (sru + asru)
-    if(kru == 0) return 0d
+    val kru = 1d - (sru + asru)
+    // optimization: if kru is 0 no matters what the correction is going to be 0
+    if (kru == 0d) return 0d
 
-    val vs = pool.lRuns.map(rp => {
+    val vs = pool.lRuns.par.map(rp => {
       val nrp = rp ◦ ru
       val δsrp = M(nrp) - M(rp)
       val δasrp = AM(nrp) - AM(rp)
-      val δkrp = - δsrp - δasrp
+      val δkrp = -δsrp - δasrp
       (δsrp, δasrp, δkrp)
     }).seq
+
     val (δss, δass, δks) = (vs.map(_._1), vs.map(_._2), vs.map(_._3))
     val Δsru = avg(δss)
     val Δasru = avg(δass)
-    val λ = kru * (Δsru * asru - Δasru * sru)
+    val λ = Δsru * asru - Δasru * sru
     if (λ > 0)
       kru * Math.max(avg(δks), 0d)
     else
-      0
+      0d
   }
 
   protected def getScoreP(ru: Runs, pool: Pool = this.pool): Score = {
+    def M(n:Int, ru: Runs, qRels: QRels = pool.qRels) =
+      TRECEval().computeMetric("P_"+n, ru, qRels)
+
     val n = metric.split("_").last.toInt
-    val sru = M(ru, pool.qRels)
+    val sru = M(n, ru, pool.qRels)
     val a = getAdjP(n, ru, pool)
     new Score(ru.id, sru + a, metric, pool.qRels)
   }
@@ -80,7 +85,7 @@ class LipaniEstimator(pool: Pool, metric: String, descs: Descs = null) extends S
 
   protected def getNewScore(sRun: Run, runRecord: RunRecord, N: Int): Float = (sRun.runRecords.size + 1) - {
     val alpha = 1d
-    val sRunRecord = sRun.getByDocumentId(runRecord.document.id)
+    val sRunRecord = sRun.getByDocument(runRecord.document)
 
     if (sRunRecord != null && sRunRecord.rank > N) {
       val step = sRunRecord.rank - runRecord.rank

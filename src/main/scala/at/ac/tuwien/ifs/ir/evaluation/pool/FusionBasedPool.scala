@@ -14,7 +14,7 @@ class FusionBasedPool(method: String, poolSize: Int, lRuns: List[Runs], gT: QRel
 
   override lazy val qRels: QRels = PoolConverter.repoolToFusionBased(method, poolSize, lRuns, gT)
 
-  override def getPooledDocuments(topicId: Int): Set[Document] = FusionBasedPool.getPooledDocuments(method, topicSizes, lRuns, gT)(topicId)
+  //override def getPooledDocuments(topicId: Int): Set[Document] = FusionBasedPool.getPooledDocuments(method, estimatedNDs, lRuns, gT)(topicId)
 
   override def getNewInstance(lRuns: List[Runs]): Pool = FusionBasedPool(method, poolSize, lRuns, gT)
 

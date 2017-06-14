@@ -14,19 +14,10 @@ class Command {
 
   protected def getListRuns(path: String): List[Runs] = getListRuns(new File(path))
 
-  protected def getListRuns(path: File): List[Runs] = {
-    val lF = path.listFiles
-    lF.filterNot(_.getName.startsWith(".")).map(getRuns(_)).toList
-  }
+  protected def getListRuns(dir: File): List[Runs] =
+    dir.listFiles.filterNot(_.getName.startsWith(".")).map(getRuns(_)).toList
 
   protected def getRuns(path: File): Runs =
-    Runs.fromLines(TXTFile.getLines(path.getCanonicalPath), path.getName.replaceAllLiterally("input.",""))
-
-  protected def getListRuns(path: String, n: Int): List[Runs] = {
-    val lF = new File(path).listFiles.take(n)
-    lF.filter(f => f.getName.endsWith(".gz")).map(f => {
-      Runs.fromLines(TXTFile.getLines(f.getCanonicalPath), f.getName.replaceAllLiterally("input.",""))
-    }).toList
-  }
+    Runs.fromLines(TXTFile.getLines(path.getCanonicalPath), path.getName.replaceAllLiterally("input.", ""))
 
 }

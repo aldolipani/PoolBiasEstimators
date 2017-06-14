@@ -10,25 +10,22 @@ import scala.util.Random
   * Multi-Armed Bandits Based Pool
   * Created by aldo on 25/07/16.
   */
-class MABBasedPool(m: String, c1: Double, c2: Double, sizePool: Int, lRuns: List[Runs], gT: QRels) extends FixedSizePool(sizePool, lRuns, gT) {
+class MABBasedPool(m: String, c1: Double, c2: Double, sizePool: Int, lRuns: List[Runs], gT: QRels, nDs:Option[Map[Int, Int]] = None) extends FixedSizePool(sizePool, lRuns, gT) {
 
-  override lazy val qRels: QRels = PoolConverter.repoolToMABBased(m, c1, c2, sizePool, lRuns, gT)
+  override lazy val qRels: QRels = PoolConverter.repoolToMABBased(m, c1, c2, sizePool, lRuns, gT, nDs getOrElse estimatedNDs)
 
-  override def getName = MABBasedPool.getName(m, c1, c2, sizePool)
+  override def getName:String = MABBasedPool.getName(m, c1, c2, sizePool)
 
-  override def getPooledDocuments(topicId: Int): Set[Document] = MABBasedPool.getPooledDocuments(m, c1, c2, topicSizes, lRuns, gT)(topicId)
-
-  override def getNewInstance(lRuns: List[Runs]): Pool = MABBasedPool(m, c1, c2, sizePool, lRuns, gT)
-
+  override def getNewInstance(lRuns: List[Runs]): Pool = MABBasedPool(m, c1, c2, sizePool, lRuns, gT, nDs)
 }
 
 object MABBasedPool {
 
   val rnd = new Random(1234)
 
-  def getName(m: String, c1: Double, c2: Double, sizePool: Int) = "MABBased_" + m + ":" + c1 + ":" + c2 + ":" + sizePool
+  def getName(m: String, c1: Double, c2: Double, sizePool: Int):String = "MABBased_" + m + ":" + c1 + ":" + c2 + ":" + sizePool
 
-  def apply(m: String, c1: Double, c2: Double, pD: Int, lRuns: List[Runs], gT: QRels) = new MABBasedPool(m, c1, c2, pD, lRuns, gT)
+  def apply(m: String, c1: Double, c2: Double, sizePool: Int, lRuns: List[Runs], gT: QRels, nDs:Option[Map[Int, Int]] = None) = new MABBasedPool(m, c1, c2, sizePool, lRuns, gT, nDs)
 
   def getPooledDocuments(m: String, c1: Double, c2: Double, nDs: Map[Int, Int], pRuns: List[Runs], qRels: QRels)(topicId: Int): Set[Document] = {
 

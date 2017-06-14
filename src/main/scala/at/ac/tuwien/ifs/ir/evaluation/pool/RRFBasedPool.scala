@@ -14,7 +14,7 @@ class RRFBasedPool(k: Int, poolSize: Int, lRuns: List[Runs], gT: QRels) extends 
 
   override lazy val qRels: QRels = PoolConverter.repoolToRRFBased(k, poolSize, lRuns, gT)
 
-  override def getPooledDocuments(topicId: Int): Set[Document] = RRFBasedPool.getPooledDocuments(k, topicSizes, lRuns, gT)(topicId)
+  //override def getPooledDocuments(topicId: Int): Set[Document] = RRFBasedPool.getPooledDocuments(k, estimatedNDs, lRuns, gT)(topicId)
 
   override def getNewInstance(lRuns: List[Runs]): Pool = RRFBasedPool(k, poolSize, lRuns, gT)
 

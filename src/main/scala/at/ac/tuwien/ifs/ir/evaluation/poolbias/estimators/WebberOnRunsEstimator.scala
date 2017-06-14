@@ -1,5 +1,6 @@
 package at.ac.tuwien.ifs.ir.evaluation.poolbias.estimators
 
+import at.ac.tuwien.ifs.ir.evaluation.TRECEval
 import at.ac.tuwien.ifs.ir.evaluation.pool.{Pool, PoolAnalyzer}
 import at.ac.tuwien.ifs.ir.evaluation.poolbias.estimators.bin.Main.L1xo
 import at.ac.tuwien.ifs.ir.evaluation.poolbias.estimators.bin.Main.L1xo._
@@ -15,31 +16,39 @@ class WebberOnRunsEstimator(pool:Pool, metric: String, descs: Descs = null, l1xo
     metric.startsWith("P_") || metric.startsWith("recall_")
 
   override def getScore(ru: Runs): Score = {
+    getScoreM(ru, pool)
+  }
+
+  def getScoreM(ru: Runs, pool: Pool = this.pool): Score = {
+    val sru = M(ru)
+    val a = getAdj(metric, ru, pool)
+    new Score(ru.id, sru + a, metric, pool.qRels)
+  }
+
+  protected def getAdj(metric:String, ru: Runs, pool: Pool): Double = {
     lazy val olRuns = descs.getRunsPerOrganization(pool.lRuns)
 
-    def filterOrganization(ru:Runs, lRuns:List[Runs]):List[Runs] = {
-      val sRuns = olRuns.find(_.map(_.id).contains(ru.id)).get
-      ScoreEstimator.excludeRuns(sRuns, lRuns)
-    }
+    def M(ru: Runs, qRels: QRels = pool.qRels) =
+      TRECEval().computeMetric(metric, ru, qRels)
 
-    def filterRun(ru:Runs, lRuns:List[Runs]):List[Runs] =
-      lRuns.filterNot(_.id == ru.id)
+    def AM(ru: Runs, qRels: QRels = pool.qRels) =
+      TRECEval().computeAntiMetric(metric, ru, qRels)
 
     val sru = M(ru)
-    val as = pool.lRuns.map(nRun => {
+    val as = pool.lRuns.par.map(nRun => {
       val nRp =
         if(l1xo == L1xo.organization)
-          filterOrganization(nRun, pool.lRuns)
+          filterOrganization(nRun, pool.lRuns, olRuns)
         else
           filterRun(nRun, pool.lRuns)
       val nQRels = pool.getNewInstance(nRp).qRels
       M(nRun) - M(nRun, nQRels)
     }).seq
-    val a = avg(as)
-    new Score(ru.id, sru + a, metric, pool.qRels)
+
+    avg(as)
   }
 
-  override def getName =
+    override def getName =
     if(l1xo == L1xo.organization)
       "WebberOnRunsL1OO"
     else
