@@ -139,9 +139,9 @@ object PoolConverter {
       qRels)
   }
 
-  def repoolToMABBased(method: String, c1: Double, c2: Double, poolSize: Int, lRuns: List[Runs], qRels: QRels, nDs: Map[Int, Int]): QRels = {
+  def repoolToMABBased(method: String, c1: Double, c2: Double, poolSize: Int, lRuns: List[Runs], qRels: QRels, nDs: Map[Int, Int], restore:Boolean): QRels = {
     repoolTo(
-      MABBasedPool.getPooledDocuments(method, c1, c2, nDs, lRuns, qRels),
+      MABBasedPool.getPooledDocuments(method, c1, c2, nDs, lRuns, qRels, restore),
       MABBasedPool.getName(method, c1, c2, poolSize),
       lRuns,
       qRels)
@@ -242,7 +242,7 @@ object PoolConverter {
     //}
   }
 
-  def to(toPool: String, pool: Pool): Pool = parseToPool(toPool) match {
+  def to(toPool: String, pool: Pool, restore:Boolean = false): Pool = parseToPool(toPool) match {
     case DepthNOption(n) => pool match {
       case pool: DepthNPool => DepthNPool(n, pool.lRuns, pool.qRels)
     }
@@ -259,12 +259,12 @@ object PoolConverter {
       case pool: DepthNPool => RBPBasedPool(m, p, nD, pool.lRuns, pool.qRels)
     }
     case MABBasedOption(m, c1, c2, nD) => pool match {
-      case pool: DepthNPool => MABBasedPool(m, c1, c2, nD, pool.lRuns, pool.qRels)
-      case pool: Pool => MABBasedPool(m, c1, c2, nD, pool.lRuns, pool.qRels)
+      case pool: DepthNPool => MABBasedPool(m, c1, c2, nD, pool.lRuns, pool.qRels, restore, FixedSizePool.findTopicSizes(nD, pool.lRuns, pool.qRels))
+      case pool: Pool => MABBasedPool(m, c1, c2, nD, pool.lRuns, pool.qRels, restore, FixedSizePool.findTopicSizes(nD, pool.lRuns, pool.qRels))
     }
     case DetailedMABBasedOption(m, c1, c2, nDs) => pool match {
-      case pool: DepthNPool => new MABBasedPool(m, c1, c2, nDs.values.sum, pool.lRuns, pool.qRels, Option(nDs))
-      case pool: Pool => new MABBasedPool(m, c1, c2, nDs.values.sum, pool.lRuns, pool.qRels, Option(nDs))
+      case pool: DepthNPool => new MABBasedPool(m, c1, c2, nDs.values.sum, pool.lRuns, pool.qRels, restore, nDs)
+      case pool: Pool => new MABBasedPool(m, c1, c2, nDs.values.sum, pool.lRuns, pool.qRels, restore, nDs)
     }
     case DepthNMABBasedOption(m, depth, c1, c2, nD) => pool match {
       case pool: DepthNPool => DepthNMABBasedPool(m, depth, c1, c2, nD, pool.lRuns, pool.qRels)
@@ -283,11 +283,11 @@ object PoolConverter {
       case pool: DepthNPool => CondorcetBasedPool(nD, pool.lRuns, pool.qRels)
     }
     case MTFBasedOption(nD) => pool match {
-      case pool: DepthNPool => MTFBasedPool(nD, pool.lRuns, pool.qRels)
+      case pool: DepthNPool => MTFBasedPool(nD, pool.lRuns, pool.qRels, FixedSizePool.findTopicSizes(nD, pool.lRuns, pool.qRels))
     }
     case DetailedMTFBasedOption(nDs) => pool match {
-      case pool: DepthNPool => new MTFBasedPool(nDs.values.sum, pool.lRuns, pool.qRels, Option(nDs))
-      case pool: Pool => new MTFBasedPool(nDs.values.sum, pool.lRuns, pool.qRels, Option(nDs))
+      case pool: DepthNPool => new MTFBasedPool(nDs.values.sum, pool.lRuns, pool.qRels, nDs)
+      case pool: Pool => new MTFBasedPool(nDs.values.sum, pool.lRuns, pool.qRels, nDs)
     }
     case DepthNMTFBasedOption(n, nD) => pool match {
       case pool: DepthNPool => DepthNMTFBasedPool(n, nD, pool.lRuns, pool.qRels)
@@ -296,7 +296,8 @@ object PoolConverter {
       case pool: DepthNPool => UnsupportedBasedPool(cmd, pool.lRuns, pool.qRels)
     }
     case UnsupportedFixedSizeBasedOption(cmd, poolSize) => pool match {
-      case pool: DepthNPool => UnsupportedFixedSizeBasedPool(cmd, poolSize, pool.lRuns, pool.qRels)
+      case pool: DepthNPool => UnsupportedFixedSizeBasedPool(cmd, poolSize, pool.lRuns, pool.qRels,
+        FixedSizePool.findTopicSizes(poolSize, pool.lRuns,pool.qRels))
     }
     case HedgeBasedOption(beta, nD) => pool match {
       case pool: DepthNPool => HedgeBasedPool(beta, nD, pool.lRuns, pool.qRels)

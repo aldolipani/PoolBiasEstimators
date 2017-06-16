@@ -11,13 +11,14 @@ import scala.util.Random
 /**
   * Created by aldo on 31/08/16.
   */
-class UnsupportedFixedSizeBasedPool(cmd: String, poolSize: Int, lRuns: List[Runs], gT: QRels) extends FixedSizePool(poolSize, lRuns, gT) {
+class UnsupportedFixedSizeBasedPool(cmd: String, poolSize: Int, lRuns: List[Runs], gT: QRels, nDs:Map[Int, Int]) extends FixedSizePool(poolSize, lRuns, gT) {
 
-  override lazy val qRels: QRels = PoolConverter.repoolToUnsupportedFixedSizeBased(cmd, estimatedNDs, lRuns, gT)
+  override lazy val qRels: QRels = PoolConverter.repoolToUnsupportedFixedSizeBased(cmd, nDs, lRuns, gT)
 
   //override def getPooledDocuments(topicId: Int): Set[Document] = qRels.topicQRels(topicId).qrelRecords.map(_.document).toSet
 
-  override def getNewInstance(lRuns: List[Runs]): Pool = UnsupportedFixedSizeBasedPool(cmd, poolSize, lRuns, gT)
+  override def getNewInstance(lRuns: List[Runs]): Pool =
+    UnsupportedFixedSizeBasedPool(cmd, poolSize, lRuns, gT, FixedSizePool.findTopicSizes(nDs.values.sum, lRuns, qRels))
 
 }
 
@@ -25,7 +26,7 @@ object UnsupportedFixedSizeBasedPool {
 
   def getName(cmd:String) = cmd.replaceAll(" ", "_")
 
-  def apply(cmd: String, poolSize:Int, lRuns: List[Runs], gT: QRels) = new UnsupportedFixedSizeBasedPool(cmd, poolSize, lRuns, gT)
+  def apply(cmd: String, poolSize:Int, lRuns: List[Runs], gT: QRels, nDs:Map[Int, Int]) = new UnsupportedFixedSizeBasedPool(cmd, poolSize, lRuns, gT, nDs)
 
   def getPooledDocuments(cmd: String, topicSizes:Map[Int, Int], lRuns: List[Runs], qRels: QRels): Map[Int, Set[Document]] = {
     def getRandomString = 1 to 10 map (i => Random.nextInt(10)) mkString ("")

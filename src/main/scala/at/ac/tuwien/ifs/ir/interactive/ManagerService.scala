@@ -13,16 +13,16 @@ import scala.collection._
   * Created by aldo on 11/05/17.
   */
 
-case class TopicDocumentRel(val topic: Int, val document: String, val rel: Int)
+case class TopicDocumentRel(topic: Int, document: String, rel: Int)
 
-case class TopicState(val topic: Int, val document: String, val state: String = "judge")
+case class TopicState(topic: Int, document: String, left:Int, state: String = "judge")
 
-case class Response(val value: List[TopicState], val status: String = "OK")
+case class Response(value: List[TopicState], status: String = "OK")
 
-case class ErrorResponse(val status: String = "Error")
+case class ErrorResponse(status: String = "Error")
 
 case object TDJsonProtocol extends DefaultJsonProtocol with SprayJsonSupport {
-  implicit val topicDocumentFormat: JsonFormat[TopicState] = jsonFormat3(TopicState)
+  implicit val topicDocumentFormat: JsonFormat[TopicState] = jsonFormat4(TopicState)
 }
 
 case object MasterJsonProtocol extends DefaultJsonProtocol with SprayJsonSupport {
@@ -41,7 +41,7 @@ object ManagerServiceActor {
 
   case class Wait(idTopic: Int) extends IRequest
 
-  case class Rel(idTopic: Int, document: Document) extends IRequest
+  case class Rel(idTopic: Int, document: Document, left:Int) extends IRequest
 
   case class GotRel(idTopic: Int) extends IRequest
 
@@ -51,14 +51,14 @@ object ManagerServiceActor {
 
 }
 
-class TopicsState(val requests: Map[Int, (Document, ActorRef)] = Map(), val status: Map[Int, String] = Map()) {
+class TopicsState(val requests: Map[Int, (Document, Int,ActorRef)] = Map(), val status: Map[Int, String] = Map()) {
 
   def changeStatus(idTopic: Int, state: String) =
     TopicsState(requests - (idTopic),
       status + (idTopic -> state))
 
-  def addRequest(idTopic: Int, document: Document, actorRef: ActorRef) =
-    TopicsState(requests + (idTopic ->(document, actorRef)),
+  def addRequest(idTopic: Int, document: Document, left: Int, actorRef: ActorRef) =
+    TopicsState(requests + (idTopic ->(document, left, actorRef)),
       status - idTopic)
 
   def removeRequest(idTopic: Int) =
@@ -67,7 +67,7 @@ class TopicsState(val requests: Map[Int, (Document, ActorRef)] = Map(), val stat
 }
 
 object TopicsState {
-  def apply(requests: Map[Int, (Document, ActorRef)], status: Map[Int, String]) = new TopicsState(requests, status)
+  def apply(requests: Map[Int, (Document, Int, ActorRef)], status: Map[Int, String]) = new TopicsState(requests, status)
 }
 
 class ManagerServiceActor(val qRels: InteractiveQRels) extends Actor with HttpService {
@@ -77,8 +77,8 @@ class ManagerServiceActor(val qRels: InteractiveQRels) extends Actor with HttpSe
   import ManagerServiceActor._
 
   def start(topicsState: TopicsState): Receive = {
-    case Rel(idTopic, document) =>
-      context become receive(topicsState.addRequest(idTopic, document, sender()))
+    case Rel(idTopic, document, left) =>
+      context become receive(topicsState.addRequest(idTopic, document, left, sender()))
     case GotRel(idTopic) =>
       context become receive(topicsState.removeRequest(idTopic))
     case Wait(idTopic) =>
@@ -103,8 +103,8 @@ class ManagerServiceActor(val qRels: InteractiveQRels) extends Actor with HttpSe
         respondWithMediaType(`application/json`) {
           complete {
             Response(
-              (topicsState.requests.map(e => TopicState(e._1, e._2._1.id)).toList
-                ::: topicsState.status.map(e => TopicState(e._1, "", e._2)).toList).sortBy(_.topic),
+              (topicsState.requests.map(e => TopicState(e._1, e._2._1.id, e._2._2)).toList
+                ::: topicsState.status.map(e => TopicState(e._1, "", -1, e._2)).toList).sortBy(_.topic),
               "OK").toJson.prettyPrint
           }
         }
@@ -132,7 +132,7 @@ class ManagerServiceActor(val qRels: InteractiveQRels) extends Actor with HttpSe
                   respondWithMediaType(`application/json`) {
                     self ! GotRel(elem.topic)
                     val request = topicsState.requests.get(elem.topic).get
-                    request._2 ! elem.rel
+                    request._3 ! elem.rel
                     complete {
                       ErrorResponse("OK").toJson.prettyPrint
                     }

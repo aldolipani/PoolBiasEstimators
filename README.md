@@ -16,25 +16,41 @@ Kendall's Tau coefficient B (TauB).
 
 Following the help message of the application:
 ```sh
-$ java -jar poolbiasestimators.jar --help
+$ java -jar PoolBiasEstimators.jar --help
 
 pool_bias_estimators 2.0
 Usage: pool_bias_estimators [options] <trec_rel_file> <trec_runs_dir> [<trec_run_file>]
 
+  --command <value>
+        commands avaialble are biasAnalysis and generatePool, if not provided biasAnalysis is default
+  --measures <value>
+        provide which measures to analyze, if not provided P_*,recall_* is default, biasAnalysis command only
+  --estimators <value>
+        select which pool bias estimators to use, biasAnalysis command only
+  --sizeRuns <value>
+        cut the runs to this cut-off, if not provived 0 is default, which means un-sized
+  --restore
+        restore the previous state of the pool generation, generatePool command only
   -r | --leaveOneRunOut
-        active the leave-one-run-out, only in analysis mode
+        active the leave-one-run-out, biasAnalysis command only
   -o | --leaveOneOrganizationOut
-        active the leave-one-organization-out, it requires the file of description of the runs, only in analysis mode
+        active the leave-one-organization-out, it requires the file of description of the runs, biasAnalysis command only
   -s | --onlyRunScoresReport
-        print only the run scores report, only in analysis mode
+        print only the run scores report, biasAnalysis command only
   -b | --onlyPoolBiasReport
-        print only the pool bias report, only in analysis mode
+        print only the pool bias report, biasAnalysis command only
+  -a | --onlyPoolBiasAnalysis
+        print only the pool bias analysis, biasAnalysis command only
   --toPoolingStrategy <value>
-        create a syntetic pool from Depth@d pooling strategy to another pooling strategy, available pooling strategies are: Depth_d, SampledDepth_d:r and Stratified{_d:r}+
+        create a syntetic pool from Depth@d pooling strategy to another pooling strategy
+  --poolAnalyzerType <value>
+        specify which algorithm of inference to use to infer the pooled runs and depth of the provided pool, mode or min_depth, if not provided mode is default
+  -p | --discoverPooledRuns
+        discover the pooled runs based on the provided relevance assessments, generatePool command only
+  -i | --interactivePool
+        enable the interaction with the pool generation process through RESTful API on the port 3737, generatePool command only
   -t | --top75Runs
         use only the top 75% of pooled runs per metric
-  -p <value> | --pValues <value>
-        directory of files in which are stored the p-values for each pair of runs, if not provided the metrics based on statistical significance (*) are not computed
   -d <value> | --desc <value>
         file of description of the runs, if not provided the leave-one-organization-out can NOT be computed
   <trec_rel_file>
@@ -47,7 +63,11 @@ Usage: pool_bias_estimators [options] <trec_rel_file> <trec_runs_dir> [<trec_run
         prints this usage text
 ```
 
-## Analysis of the Pool Bias of a Test Collection
+This application provides to commands, one to analysis pool bias, and the second to generate pools.
+
+## biasAnalysis Command
+
+### Analysis of the Pool Bias of a Test Collection
 The analysis of the pool bias of a test collection consists in a report that is based on the calculation of how much the score of a run would have been different if an entity had not taken part in the construction of the pool. Where with entity is meant a single run or all the runs submitted by an organization to which the selected run belongs.
 To simulate the effect of the test collection on a new system, for each run is unpooled its entity and then the new score compared with the pooled one, where with to unpool is meant pragmatically that all the uniquely identified documents by the given entity are removed from the relevance assessments.
 In this way it is possible to compare the score of a run when its entity is and is not part of the pool, and calculate 
@@ -56,7 +76,7 @@ test collection is biased against new systems.
 
 Following an example:
 ```sh
-java -jar poolbiasestimators.jar ./TREC/TREC-14/Robust/QRels ./TREC/TREC-14/Robust/Runs
+java -jar PoolBiasEstimators.jar ./TREC/TREC-14/Robust/QRels ./TREC/TREC-14/Robust/Runs
 List Parameters
 trec_rel_file  	./TREC/TREC-14/Robust/QRels
 trec_runs_dir  	./TREC/TREC-14/Robust/Runs
@@ -122,12 +142,12 @@ Only 75% Top Best Runs: 13
 [...]
 ```
 
-## Correction of a Run
+### Correction of a Run
 The second use case, the *correction* of a run, computes given a run its estimated score. Here we can distinguish two output that depend whether the provided run is part or is not part of the pool. When it is part of the pool also the TE is output, instead when it is not, the TE's score assumes the value of NaN. 
 
 Following an example:
 ```sh
-$ java -jar poolbiasestimators.jar ./TREC/TREC-14/Robust/QRels ./TREC/TREC-14/Robust/Runs ./TREC/TREC-14/Robust/Runs/input.ASUDIV.gz
+$ java -jar PoolBiasEstimators.jar ./TREC/TREC-14/Robust/QRels ./TREC/TREC-14/Robust/Runs ./TREC/TREC-14/Robust/Runs/input.ASUDIV.gz
 
 List Parameters
 trec_rel_file	./TREC/TREC-14/Robust/QRels
@@ -171,8 +191,8 @@ Lipani      	ASUDIV         	0.4740
 [...]
 ```
 
-## Arguments of the Application
-### Leave One Run/Organization Out approach (-s or -o with -d <value>), Available Only in *Analysis* Mode
+### Arguments of the Application
+#### Leave One Run/Organization Out approach (-s or -o with -d <value>), Available Only in *Analysis* Mode
 The pooling technique is mostly used during evaluation campaigns. In a evaluation campaign many challenges take place with a 
 number of organization participating at them, and each organization in each challenge is allowed to submit more then one run. Sometimes the runs submitted by the same organization are generated using the same system with just some difference in the tuning of its parameters. This behavior has the effect to produce slightly similar runs that would contribute to the pool with a similar set of documents to be judged. To avoid this effect that would minimize the measure of the pool bias, and to make a more realistic analysis of it, we implemented the possibility to switch approach from the default one leave-one-run-out to leave-one-organization-out approach, in which all the runs submitted by the organization of the selected run are unpooled.
 
@@ -190,32 +210,137 @@ The leave-one-organization-out approach requires additional information that nee
     ...
 </set>
 ```
-### Print Runs Scores Report, Pool Bias Report or both (-r or -b [with -p], default)
+#### Print Runs Scores Report, Pool Bias Report or both (-r or -b [with -p], default)
 The application can output the *runs scores report* or the *pool bias report* or by default both.
 The runs scores report prints the score of each run for each estimator; the pool bias report prints the values obtained using the measure of error and correlation for each estimators with respect to the TrueEstimator.
 
-### All Pooled Runs or Only Top Best 75% of Pooled Runs (default or -t)
+#### All Pooled Runs or Only Top Best 75% of Pooled Runs (default or -t)
 Due to the prototypical nature of IR challenges sometimes organization submit runs with modest performance.
 To avoid their effect, as it has been done in the literature, it is possible to remove the bottom 25% of runs poorly scoring from the set of analyzed runs.
 
-### The pValues files (-p /path/to/the/folder)
-The pValues files are used by the measures of errors and correlation marked by a star. For each IR measure is required a separated file that has the following name pattern: "pValues.[Metric].csv". All the values greater then 
-0.05 are considered non statistically significant. The format of the files is a list of coma separated values (CSV) as shown in the following example:
-```csv
-input.ARCJ5,input.ARCJ0,0.58162
-input.JuruFull,input.ARCJ0,0.00441
-input.JuruFullQE,input.ARCJ0,0.00244
-[...]
-```
-
-### Transform a Depth@d pooling strategy to another (-toPoolingStrategy <value>)
+#### Transform a Depth@d pooling strategy to another (-toPoolingStrategy <value>)
 To analyze a test collection or a run assuming a different pooling strategy than the one used to build the test collection, it is possible to create a synthetic pool, from a pool constructed with a Depth@d pooling strategy, with one of the following pooling strategies: Depth@d, SampledDepth@d&r and Stratified.
 
+## generatePool Command
+
+In this section we present the generatePool command, which aims to generate a pool based on, existing relevance assessments, or user interaction.
+
+### Generate a Pool from existing Relevance Assessments
+
+To generate a new set of relevance assessments based on existing relevance assessments, for example using the TREC 14 Robust test collection, with run size 100 and using a Multi-Armed Bandit-based pooling strategy named MaxMean [4], we run the following command:
+```sh
+$ java -jar PoolBiasEstimators.jar --command generatePool \
+                                   --sizeRuns 100 \
+                                   --toPoolingStrategy mabbased_maxmean:10000 \
+                                   /Users/aldo/Projects/TestCollections/TREC/TREC-14/Robust/QRels \
+                                   /Users/aldo/Projects/TestCollections/TREC/TREC-14/Robust/Runs
+```
+
+This will print out the new set of relevance assessments:
+
+```sh
+303 0 XIE20000522.0056 0
+303 0 XIE20000519.0111 0
+303 0 XIE19991228.0201 0
+303 0 XIE19990813.0262 0
+303 0 XIE19990416.0045 2
+303 0 XIE19990109.0245 2
+303 0 XIE19981010.0047 2
+...
+303 0 NYT20000218.0252 -1
+```
+Rel equals to -1 indicates that the document has not been judged. This happens when the document is also not judged in the provided relevance assessments.
+
+### Generate a Pool from User Interaction
+
+To make users (or third-party software) able to interact with the pool generation functionality we have developed a RESTful API. To activate this service you need to provide the interactive flag (-i). As in the previous example, to generate a new set of relevance assessments based on the TREC 14 Robust test collection, with the run size 100 and using a Multi-Armed Bandit-based pooling strategy named MaxMean [4], we run the following command:
+
+```sh
+$ java -jar PoolBiasEstimators.jar --command generatePool \
+                                   -i \
+                                   --sizeRuns 100 \
+                                   --toPoolingStrategy mabbased_maxmean:10000 \
+                                   /Users/aldo/Projects/TestCollections/TREC/TREC-14/Robust/QRels \
+                                   /Users/aldo/Projects/TestCollections/TREC/TREC-14/Robust/Runs
+```
+
+The application will then start a server visible at the address <http://localhost:3737>. Following the reply of the web server when sent an HTTP GET request at this address soon after the web server has been started:
+
+```json
+{
+  "value": [{
+    "topic": 303,
+    "document": "",
+    "left": -1,
+    "state": "wait"
+  }, {
+    "topic": 307,
+    "document": "",
+    "left": -1,
+    "state": "wait"
+  }, {
+    "topic": 310,
+    "document": "",
+    "left": -1,
+    "state": "wait"
+  }, ...],
+  "status": "OK"
+}
+```
+
+Following the reply of the web server when ready to start the judgment process (note that "wait" changed to "judge"):
+
+```json
+{
+  "value": [{
+    "topic": 303,
+    "document": "APW19990310.0063",
+    "left": 275,
+    "state": "judge"
+  }, {
+    "topic": 307,
+    "document": "XIE19971211.0031",
+    "left": 809,
+    "state": "judge"
+  }, {
+    "topic": 310,
+    "document": "NYT20000726.0313",
+    "left": 590,
+    "state": "judge"
+  }, ...],
+  "status": "OK"
+}
+```
+
+Now if we want to judge document "APW19990310.0063" for topic 303 as a relevant document, we need to send this HTTP GET request:
+<http://localhost:3737/judge?topic=303&document=APW19990310.0063&rel=1>
+or if non relevant:
+<http://localhost:3737/judge?topic=303&document=APW19990310.0063&rel=0>
+To both requests the server will reply with:
+```json
+{
+  "status": "OK"
+}
+```
+
+In case of accidental interruption of the generation process, the application provides a way to restore the status of the generation process from the point when it was interrupted. This is done by providing the last generated relevance assessments, and the flag restore (--restore), as follows:
+
+```sh
+$ java -jar PoolBiasEstimators.jar --command generatePool \
+                                   -i \
+                                   --restore \
+                                   --sizeRuns 100 \
+                                   --toPoolingStrategy mabbased_maxmean:10000 \
+                                   /Users/aldo/Projects/TestCollections/TREC/TREC-14/Robust/QRels \
+                                   /Users/aldo/Projects/TestCollections/TREC/TREC-14/Robust/Runs
+```
 
 ## Bibliography
 
 [1] Lipani, Aldo, Mihai Lupu, and Allan Hanbury. "Splitting Water: Precision and Anti-Precision to Reduce Pool Bias." Proceedings of the 38th International ACM SIGIR Conference on Research and Development in Information Retrieval. ACM, 2015. DOI=10.1145/2766462.2767749 http://doi.acm.org/10.1145/2766462.2767749
 
-[2] The Curious Incidence of Bias Corrections in the Pool
+[2] Lipani, Aldo, Mihai Lupu, and Allan Hanbury. "The curious incidence of bias corrections in the pool." European Conference on Information Retrieval. Springer International Publishing, 2016. https://link.springer.com/chapter/10.1007/978-3-319-30671-1_20
 
 [3] Webber, William, and Laurence AF Park. "Score adjustment for correction of pooling bias." Proceedings of the 32nd international ACM SIGIR conference on Research and development in information retrieval. ACM, 2009. DOI=10.1145/1571941.1572018 http://doi.acm.org/10.1145/1571941.1572018
+
+[4] TOIS Paper

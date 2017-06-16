@@ -9,21 +9,20 @@ import scala.util.Random
   * Created by aldo on 29/03/16.
   */
 
-class MTFBasedPool(poolSize: Int, lRuns: List[Runs], gT: QRels, nDs:Option[Map[Int, Int]] = None) extends FixedSizePool(poolSize, lRuns, gT) {
+class MTFBasedPool(poolSize: Int, lRuns: List[Runs], gT: QRels, nDs:Map[Int, Int]) extends FixedSizePool(poolSize, lRuns, gT, nDs) {
 
   override def getName:String = MTFBasedPool.getName(poolSize)
 
-  override lazy val qRels: QRels = PoolConverter.repoolToMTFBased(poolSize, lRuns, gT, nDs getOrElse estimatedNDs)
+  override lazy val qRels: QRels = PoolConverter.repoolToMTFBased(poolSize, lRuns, gT, nDs)
 
-  //override def getPooledDocuments(topicId: Int): Set[Document] = MTFBasedPool.getPooledDocuments(nDs getOrElse estimatedNDs, lRuns, gT)(topicId)
-
-  override def getNewInstance(lRuns: List[Runs]): Pool = MTFBasedPool(poolSize, lRuns, gT, nDs)
+  override def getNewInstance(lRuns: List[Runs]): Pool = MTFBasedPool(poolSize, lRuns, gT,
+    FixedSizePool.findTopicSizes(nDs.values.sum, lRuns, qRels))
 
 }
 
 object MTFBasedPool {
 
-  def apply(poolSize: Int, lRuns: List[Runs], gT: QRels, nDs:Option[Map[Int,Int]] = None) = new MTFBasedPool(poolSize, lRuns, gT, nDs)
+  def apply(poolSize: Int, lRuns: List[Runs], gT: QRels, nDs:Map[Int,Int]) = new MTFBasedPool(poolSize, lRuns, gT, nDs)
 
   def getName(poolSize: Int):String = "mtfbased_" + poolSize
 

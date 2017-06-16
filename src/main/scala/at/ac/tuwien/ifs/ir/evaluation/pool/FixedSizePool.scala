@@ -9,11 +9,7 @@ import scala.annotation.tailrec
 /**
   * Created by aldo on 21/08/16.
   */
-class FixedSizePool(poolSize:Int, lRuns:List[Runs], gT:QRels) extends Pool(lRuns, gT) {
-
-  protected lazy val estimatedNDs = FixedSizePool.findTopicSizes(poolSize, lRuns, gT)
-
-}
+class FixedSizePool(poolSize:Int, lRuns:List[Runs], gT:QRels, val nDs:Map[Int, Int] = Map()) extends Pool(lRuns, gT)
 
 object FixedSizePool {
 

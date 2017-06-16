@@ -12,12 +12,12 @@ import akka.util.Timeout
   */
 class GeneratePool extends Command{
 
-  def generate(trecQRelsFile: File, trecRunsDir: File, toPool:String, sizeRuns:Int, discoverPooledRuns:Boolean, poolAnalyzerType:String, interactivePool:Boolean, httpPort:Int) {
+  def generate(trecQRelsFile: File, trecRunsDir: File, toPool:String, sizeRuns:Int, discoverPooledRuns:Boolean, poolAnalyzerType:String, interactivePool:Boolean, httpPort:Int, restore:Boolean) {
     val qRels =
       if(!interactivePool)
         getQRels(trecQRelsFile)
       else{
-        val qRels = getInteractiveQRels(trecQRelsFile, httpPort)
+        val qRels = getInteractiveQRels(trecQRelsFile, Map(), httpPort)
         qRels
       }
 
@@ -29,9 +29,8 @@ class GeneratePool extends Command{
         lRuns
       }
 
-
     val pool = new Pool(nLRuns, qRels)
-    //WARNING: input must be a DepthNPool
+
     val nPool =
       if(discoverPooledRuns) {
         val poolAnalyser = PoolAnalyzer(pool, poolAnalyzerType)
@@ -44,14 +43,16 @@ class GeneratePool extends Command{
     if(!interactivePool)
       println(PoolConverter.to(toPool, nPool).qRels)
     else {
-      PoolConverter.to(toPool, nPool).qRels
+      val pool = PoolConverter.to(toPool, nPool, restore)
+      qRels.asInstanceOf[InteractiveQRels].nDs = pool.asInstanceOf[FixedSizePool].nDs
+      pool.qRels
       println(qRels.toString)
     }
   }
 
-  protected def getInteractiveQRels(file: File, httpPort:Int) = {
+  protected def getInteractiveQRels(file: File, nDs:Map[Int, Int], httpPort:Int):InteractiveQRels = {
     val qRels = QRels.fromLines("test", TXTFile.getLines(file))
-    new InteractiveQRels(qRels.id, qRels.qRels, httpPort)
+    new InteractiveQRels(qRels.id, qRels.qRels, nDs, httpPort)
   }
 
 
@@ -59,8 +60,6 @@ class GeneratePool extends Command{
 
 object GeneratePool{
 
-  def apply() = {
-    new GeneratePool();
-  }
+  def apply() = new GeneratePool()
 
 }

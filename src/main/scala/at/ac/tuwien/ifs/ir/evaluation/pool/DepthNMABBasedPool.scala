@@ -14,9 +14,7 @@ class DepthNMABBasedPool(m: String, depth:Int, c1: Double, c2: Double, sizePool:
 
   override lazy val qRels: QRels = PoolConverter.repoolToDepthNMABBased(m, depth, c1, c2, sizePool, lRuns, gT)
 
-  override def getName = DepthNMABBasedPool.getName(m, depth, c1, c2, sizePool)
-
-  //override def getPooledDocuments(topicId: Int): Set[Document] = DepthNMABBasedPool.getPooledDocuments(m, depth, c1, c2, estimatedNDs, lRuns, gT)(topicId)
+  override def getName:String = DepthNMABBasedPool.getName(m, depth, c1, c2, sizePool)
 
   override def getNewInstance(lRuns: List[Runs]): Pool = DepthNMABBasedPool(m, depth, c1, c2, sizePool, lRuns, gT)
 
@@ -26,7 +24,7 @@ object DepthNMABBasedPool {
 
   val rnd = new Random(1234)
 
-  def getName(m: String, depth:Int, c1: Double, c2: Double, sizePool: Int) = "MABBased_" + m + ":" + depth + ":" + c1 + ":" + c2 + ":" + sizePool
+  def getName(m: String, depth:Int, c1: Double, c2: Double, sizePool: Int):String = "MABBased_" + m + ":" + depth + ":" + c1 + ":" + c2 + ":" + sizePool
 
   def apply(m: String, depth:Int, c1: Double, c2: Double, pD: Int, lRuns: List[Runs], gT: QRels) = new DepthNMABBasedPool(m, depth, c1, c2, pD, lRuns, gT)
 

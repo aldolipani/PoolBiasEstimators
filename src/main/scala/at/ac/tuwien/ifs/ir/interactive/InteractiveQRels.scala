@@ -15,7 +15,7 @@ import scala.collection._
 /**
   * Created by aldo on 11/05/17.
   */
-class InteractiveQRels(id: String, qRels:Seq[QRel], httpPort:Int) extends QRels(id, qRels){
+class InteractiveQRels(id: String, qRels:Seq[QRel], var nDs:Map[Int, Int], httpPort:Int) extends QRels(id, qRels){
 
   implicit val system = ActorSystem("PoolBiasEstimators")
   implicit val inbox:Inbox = Inbox.create(system)
@@ -47,20 +47,23 @@ class InteractiveQRels(id: String, qRels:Seq[QRel], httpPort:Int) extends QRels(
   override
   def getRel(idTopic: Int, document: Document) = {
     val rel = topicQRels(idTopic).getRel(document)
-    //if(rel < 0){
-      askRelToUser(idTopic, document)
-    //}else{
-    //  rel
-    //}
+    if(rel < 0){
+      askRelToUser(idTopic, document,
+        if(nDs.nonEmpty)
+          nDs(idTopic) - topicQRels(idTopic).sizeRel - topicQRels(idTopic).sizeNotRel
+        else
+          -1)
+    }else{
+      rel
+    }
   }
 
-
-  def askRelToUser(idTopic: Int, document: Document):Int = {
+  def askRelToUser(idTopic: Int, document: Document, left: Int):Int = {
     println("send request for topic " + idTopic + " and document " + document.id)
 
     val rel =
       try {
-        val request = new ManagerServiceActor.Rel(idTopic, document)
+        val request = new ManagerServiceActor.Rel(idTopic, document, left)
         val future = managerService ? request
         val rel = Await.result(future, timeout.duration).asInstanceOf[Int]
 
@@ -70,7 +73,7 @@ class InteractiveQRels(id: String, qRels:Seq[QRel], httpPort:Int) extends QRels(
           new QRelRecord(oldQRelRecord.iteration, oldQRelRecord.document, rel))
         rel
       } catch {
-        case e: TimeoutException => askRelToUser(idTopic, document)
+        case e: TimeoutException => askRelToUser(idTopic, document, left)
       }
     rel
   }

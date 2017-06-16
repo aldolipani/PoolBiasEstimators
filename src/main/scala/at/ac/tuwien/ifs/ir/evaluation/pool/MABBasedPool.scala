@@ -10,13 +10,14 @@ import scala.util.Random
   * Multi-Armed Bandits Based Pool
   * Created by aldo on 25/07/16.
   */
-class MABBasedPool(m: String, c1: Double, c2: Double, sizePool: Int, lRuns: List[Runs], gT: QRels, nDs:Option[Map[Int, Int]] = None) extends FixedSizePool(sizePool, lRuns, gT) {
+class MABBasedPool(m: String, c1: Double, c2: Double, sizePool: Int, lRuns: List[Runs], gT: QRels, restore:Boolean, nDs:Map[Int, Int]) extends FixedSizePool(sizePool, lRuns, gT, nDs) {
 
-  override lazy val qRels: QRels = PoolConverter.repoolToMABBased(m, c1, c2, sizePool, lRuns, gT, nDs getOrElse estimatedNDs)
+  override lazy val qRels: QRels = PoolConverter.repoolToMABBased(m, c1, c2, sizePool, lRuns, gT, nDs, restore)
 
   override def getName:String = MABBasedPool.getName(m, c1, c2, sizePool)
 
-  override def getNewInstance(lRuns: List[Runs]): Pool = MABBasedPool(m, c1, c2, sizePool, lRuns, gT, nDs)
+  override def getNewInstance(lRuns: List[Runs]): Pool = MABBasedPool(m, c1, c2, sizePool, lRuns, gT, restore,
+    FixedSizePool.findTopicSizes(nDs.values.sum, lRuns, qRels))
 }
 
 object MABBasedPool {
@@ -25,9 +26,9 @@ object MABBasedPool {
 
   def getName(m: String, c1: Double, c2: Double, sizePool: Int):String = "MABBased_" + m + ":" + c1 + ":" + c2 + ":" + sizePool
 
-  def apply(m: String, c1: Double, c2: Double, sizePool: Int, lRuns: List[Runs], gT: QRels, nDs:Option[Map[Int, Int]] = None) = new MABBasedPool(m, c1, c2, sizePool, lRuns, gT, nDs)
+  def apply(m: String, c1: Double, c2: Double, sizePool: Int, lRuns: List[Runs], gT: QRels, restore:Boolean, nDs:Map[Int, Int]) = new MABBasedPool(m, c1, c2, sizePool, lRuns, gT, restore, nDs)
 
-  def getPooledDocuments(m: String, c1: Double, c2: Double, nDs: Map[Int, Int], pRuns: List[Runs], qRels: QRels)(topicId: Int): Set[Document] = {
+  def getPooledDocuments(m: String, c1: Double, c2: Double, nDs: Map[Int, Int], pRuns: List[Runs], qRels: QRels, restore:Boolean)(topicId: Int): Set[Document] = {
 
     val oRs: Map[Int, List[Document]] = FixedSizePool.getSimplifiedLRuns(topicId, pRuns)
 
@@ -169,7 +170,7 @@ object MABBasedPool {
     def maxMean(): Set[Document] = {
 
       @tailrec def getDocuments(rs: Map[Int, List[Document]], cQRel: QRel = new QRel(topicId, Nil), acc: Set[Document] = Set()): Set[Document] = {
-        if (acc.size == nDs(topicId) || rs.isEmpty)
+        if (acc.size >= nDs(topicId) || rs.isEmpty)
           acc
         else {
           // select arm
@@ -193,7 +194,13 @@ object MABBasedPool {
         }
       }
 
-      getDocuments(oRs)
+      if(restore) {
+        val nQRel = qRels.getTopicQRels(topicId).qRels.head
+        val docs = oRs.flatMap(e => oRs(e._1).takeWhile(doc => nQRel.getRel(doc) >= 0)).toSet
+        val nORs = oRs.map(e => e._1 -> oRs(e._1).dropWhile(doc => nQRel.getRel(doc) >= 0)).filter(_._2.nonEmpty)
+        getDocuments(nORs, nQRel, docs)
+      }else
+        getDocuments(oRs)
     }
 
     if (m == "random")

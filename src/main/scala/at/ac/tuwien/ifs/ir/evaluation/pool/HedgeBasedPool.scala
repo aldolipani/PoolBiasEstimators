@@ -14,8 +14,6 @@ class HedgeBasedPool(beta: Double, poolSize: Int, lRuns: List[Runs], gT: QRels) 
 
   override lazy val qRels: QRels = PoolConverter.repoolToHedgeBased(beta, poolSize, lRuns, gT)
 
-  //override def getPooledDocuments(topicId: Int): Set[Document] = HedgeBasedPool.getPooledDocuments(beta, estimatedNDs, lRuns, gT)(topicId)
-
   override def getNewInstance(lRuns: List[Runs]): Pool = HedgeBasedPool(beta, poolSize, lRuns, gT)
 
 }
