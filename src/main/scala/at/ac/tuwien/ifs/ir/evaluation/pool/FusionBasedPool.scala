@@ -10,7 +10,7 @@ import scala.collection.parallel.{ParMap, ParSeq}
   */
 class FusionBasedPool(method: String, poolSize: Int, lRuns: List[Runs], gT: QRels) extends FixedSizePool(poolSize, lRuns, gT) {
 
-  override def getName = FusionBasedPool.getName(method, poolSize)
+  override def getName:String = FusionBasedPool.getName(method, poolSize)
 
   override lazy val qRels: QRels = PoolConverter.repoolToFusionBased(method, poolSize, lRuns, gT)
 
@@ -22,7 +22,7 @@ object FusionBasedPool {
 
   def apply(method: String, poolSize: Int, lRuns: List[Runs], gT: QRels) = new FusionBasedPool(method, poolSize, lRuns, gT)
 
-  def getName(method: String, poolSize: Int) = "fusionbased_" + method + ":" + poolSize
+  def getName(method: String, poolSize: Int):String = "fusionbased_" + method + ":" + poolSize
 
   def getPooledDocuments(method: String, nDs: Map[Int, Int], lRuns: List[Runs], qRels: QRels)(topicId: Int): Set[Document] = {
 
@@ -40,8 +40,8 @@ object FusionBasedPool {
       }
     }
 
-    val nLRuns = lRuns.filter(_.selectByTopicId(topicId) != null).map(runs => {
-      val run = runs.selectByTopicId(topicId)
+    val nLRuns = lRuns.filter(_.selectByTopicIdOrNil(topicId) != Nil).map(runs => {
+      val run = runs.selectByTopicIdOrNil(topicId)
       new Runs(runs.id, List(new Run(run.id, normalize(run.runRecords))))
     })
 

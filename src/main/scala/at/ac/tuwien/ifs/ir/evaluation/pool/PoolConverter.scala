@@ -425,14 +425,14 @@ object PoolConverter {
       val nD = args(1).toInt
       FusionBasedOption(m, nD)
     } else if (cmd == "bordabased") {
-      // bordaBased:0:10000
-      val collectionSize = sToPool(1).toInt
-      val nD = sToPool(2).toInt
+      // bordabased_0:10000
+      val args = sToPool(1).split(":")
+      val collectionSize = args(0).toInt
+      val nD = args(1).toInt
       BordaBasedOption(collectionSize, nD)
     } else if (cmd == "condorcetbased") {
-      // condorcetbased:10000
-      val args = sToPool(1).split(":")
-      val nD = args(0).toInt
+      // condorcetbased_10000
+      val nD = sToPool(1).toInt
       CondorcetBasedOption(nD)
     } else if (cmd == "hedgebased") {
       // hedgeBased_0.1:10000
