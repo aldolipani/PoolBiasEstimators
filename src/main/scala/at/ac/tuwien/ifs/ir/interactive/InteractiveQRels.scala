@@ -15,22 +15,22 @@ import scala.collection._
 /**
   * Created by aldo on 11/05/17.
   */
-class InteractiveQRels(id: String, qRels:Seq[QRel], var nDs:Map[Int, Int], httpPort:Int) extends QRels(id, qRels){
+class InteractiveQRels(id: String, qRels: Seq[QRel], var nDs: Map[Int, Int], httpPort: Int) extends QRels(id, qRels) {
 
   implicit val system = ActorSystem("PoolBiasEstimators")
-  implicit val inbox:Inbox = Inbox.create(system)
+  implicit val inbox: Inbox = Inbox.create(system)
   implicit val timeout = Timeout(30.seconds)
 
   val managerService = system.actorOf(ManagerServiceActor.props(this), ManagerServiceActor.name)
-  IO(Http) ? Http.Bind(managerService, interface = "localhost", port = httpPort)
+  IO(Http) ? Http.Bind(managerService, interface = "0.0.0.0", port = httpPort)
   println("accepting connection to port: " + httpPort)
 
-  for(qRel <- qRels){
+  for (qRel <- qRels) {
     val request = new ManagerServiceActor.Wait(qRel.id)
     managerService ! request
   }
 
-  lazy val nQRels:mutable.Map[Int, mutable.Map[Document, QRelRecord]] = {
+  lazy val nQRels: mutable.Map[Int, mutable.Map[Document, QRelRecord]] = {
     val map = this.topicQRels.mapValues(qrel => {
       val map = qrel.qrelRecords.map(record => (record.document -> record)).toMap
       collection.mutable.HashMap(map.toSeq: _*)
@@ -39,55 +39,60 @@ class InteractiveQRels(id: String, qRels:Seq[QRel], var nDs:Map[Int, Int], httpP
   }
 
   override
-  def complete(idTopic:Int) {
+  def complete(idTopic: Int) {
     val request = new ManagerServiceActor.Done(idTopic)
     managerService ! request
   }
 
   override
   def getRel(idTopic: Int, document: Document) = {
-    val rel = topicQRels(idTopic).getRel(document)
-    if(rel < 0){
+    val rel =  nQRels(idTopic).getOrElse(document, QRelRecord("Q0", document, -1)).rel
+    if (rel < 0) {
       askRelToUser(idTopic, document,
-        if(nDs.nonEmpty)
-          nDs(idTopic) - topicQRels(idTopic).sizeRel - topicQRels(idTopic).sizeNotRel
-        else
+        if (nDs.nonEmpty) {
+          nDs(idTopic) - nQRels(idTopic).count(e => e._2.rel >= 0)
+        }else
           -1)
-    }else{
+    } else {
       rel
     }
   }
 
-  def askRelToUser(idTopic: Int, document: Document, left: Int):Int = {
-    println("send request for topic " + idTopic + " and document " + document.id)
+  def askRelToUser(idTopic: Int, document: Document, left: Int): Int = {
+    println("send request for topic " + idTopic + " and document " + document.id + ", " + left + " left")
 
     val rel =
       try {
-        val request = new ManagerServiceActor.Rel(idTopic, document, left)
+        val request = ManagerServiceActor.Rel(idTopic, document, left)
         val future = managerService ? request
         val rel = Await.result(future, timeout.duration).asInstanceOf[Int]
 
         println("received result for topic " + idTopic + " and document " + document.id + ": " + rel)
-        val oldQRelRecord =  nQRels(idTopic)(document)
-        nQRels.get(idTopic).get.update(document,
-          new QRelRecord(oldQRelRecord.iteration, oldQRelRecord.document, rel))
+        if(nQRels(idTopic).contains(document)) {
+          val oldQRelRecord = nQRels(idTopic)(document)
+          nQRels.get(idTopic).get.update(document,
+            new QRelRecord(oldQRelRecord.iteration, oldQRelRecord.document, rel))
+        }else{
+          nQRels.get(idTopic).get.put(document,
+            new QRelRecord("Q0", document, rel))
+        }
         rel
       } catch {
         case e: TimeoutException => askRelToUser(idTopic, document, left)
       }
     rel
   }
-  //split per topic
 
+  //split per topic
   override def toString: String =
     nQRels.toList.sortBy(_._1).map(e =>
-      e._2.values.toList.sortBy(_.document).filter(_.rel == 2).map(r =>
+      e._2.values.toList.sortBy(_.document).map(r =>
         e._1 + " " + r.toString).mkString("\n")).filter(_.nonEmpty).mkString("\n")
 }
 
-object InteractiveQRels{
+object InteractiveQRels {
 
-  def par(qRels:Seq[QRel]) : ParSeq[QRel] = {
+  def par(qRels: Seq[QRel]): ParSeq[QRel] = {
     import scala.collection.parallel._
     val parQRels = qRels.par
     parQRels.tasksupport = new ForkJoinTaskSupport(new scala.concurrent.forkjoin.ForkJoinPool(qRels.size))

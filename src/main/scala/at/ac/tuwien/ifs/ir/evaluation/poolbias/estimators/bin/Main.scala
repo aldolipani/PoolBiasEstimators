@@ -58,6 +58,9 @@ object Main extends App {
       opt[Int]("sizeRuns") optional() action { (x, c) =>
         c.copy(sizeRuns = x)
       } text "cut the runs to this cut-off, if not provived 0 is default, which means un-sized"
+      opt[Int]("httpPort") optional() action { (x, c) =>
+        c.copy(httpPort = x)
+      } text "change http port"
       opt[Unit]("restore") action { (x, c) =>
         c.copy(restore = true)
       } text "restore the previous state of the pool generation, generatePool command only, generatePool command in interactive mode only"

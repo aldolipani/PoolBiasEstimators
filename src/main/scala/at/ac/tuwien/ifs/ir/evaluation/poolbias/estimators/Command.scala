@@ -15,7 +15,7 @@ class Command {
   protected def getListRuns(path: String): List[Runs] = getListRuns(new File(path))
 
   protected def getListRuns(dir: File): List[Runs] =
-    dir.listFiles.filterNot(_.getName.startsWith(".")).map(getRuns(_)).toList
+    dir.listFiles.filterNot(_.getName.startsWith(".")).toList.par.map(getRuns(_)).seq.toList
 
   protected def getRuns(path: File): Runs =
     Runs.fromLines(TXTFile.getLines(path.getCanonicalPath), path.getName.replaceAllLiterally("input.", ""))

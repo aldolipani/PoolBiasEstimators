@@ -26,9 +26,8 @@ abstract class ScoreEstimator(val pool: Pool, val metric: String, descs: Descs =
     for (tId <- pool.qRels.topicIds.toList.sorted if (ru.selectByTopicId(tId) != null)) yield {
       val nRu = getRunsOnly(ru, tId)
       val nLRuns = pool.lRuns.map(r => getRunsOnly(r, tId))
-      val nQRels = pool.qRels.getTopicQRels(tId)
-      //val nPool = pool.getNewInstance(nLRuns)
-      (tId, getScore(nRu, new Pool(nLRuns, nQRels)))
+      val nPool = pool.getNewInstance(nLRuns)
+      (tId, getScore(nRu, nPool))
     }
   }
 
@@ -107,36 +106,42 @@ abstract class ScoreEstimator(val pool: Pool, val metric: String, descs: Descs =
     System.out.format("%-12s\t%s\n", getName, getScore(runs))
   }
 
-  protected def avg(x: Seq[Double]) = x.sum / x.size
+  protected def avg(xs: Seq[Double]) =
+    if (xs.isEmpty)
+      0d
+    else
+      xs.sum / xs.size
+
+  protected def gavg(xs: Seq[Double]) =
+    if (xs.isEmpty)
+      0d
+    else
+      Math.exp(
+        avg(xs.map(x =>
+          Math.log(x))))
 
   protected def avg(x: Seq[Double], den: Double) = x.sum / den
 
-  protected def round(num: Double) = Math.round(num * 10000).toDouble / 10000
-
   def M(ru: Runs, qRels: QRels = pool.qRels) =
-    TRECEval().computeMetric(metric, ru, qRels)
+    TRECEval().computeRawMetric(metric, ru, qRels)
 
   def AM(ru: Runs, qRels: QRels = pool.qRels) =
-    TRECEval().computeAntiMetric(metric, ru, qRels)
+    TRECEval().computeRawAntiMetric(metric, ru, qRels)
 
   def MT(ru: Runs, qRels: QRels = pool.qRels) =
-    TRECEval().computeMetricPerTopic(metric, ru, qRels).map(e => {
-      if (ru.selectByTopicId(e._1) != null) {
-        e
-      } else {
-        e._1 -> Double.NaN
-      }
-    })
+    TRECEval().computeRawMetricPerTopic(metric, ru, qRels).map(e =>
+      e._1 -> (if(ru.selectByTopicIdOrNil(e._1).runRecords.isEmpty) Double.NaN else e._2)).toMap
 
   def AMT(ru: Runs, qRels: QRels = pool.qRels) =
-    TRECEval().computeAntiMetricPerTopic(metric, ru, qRels)
+    TRECEval().computeRawAntiMetricPerTopic(metric, ru, qRels)
 
-  def filterOrganization(ru:Runs, lRuns:List[Runs], olRuns:List[List[Runs]]):List[Runs] = {
-    val sRuns = olRuns.find(_.map(_.id).contains(ru.id)).get
-    ScoreEstimator.excludeRuns(sRuns, lRuns)
+  def filterOrganization(ru: Runs, lRuns: List[Runs], olRuns: List[List[Runs]]): List[Runs] = {
+    //println(ru.id, olRuns.flatten.map(_.id).mkString(", "))
+    val sRuns = olRuns.find(_.map(_.id).contains(ru.id.split("@").head)).get
+    ScoreEstimator.excludeRuns(sRuns, lRuns.map(e => new Runs(e.id.split("@").head, e.runs)))
   }
 
-  def filterRun(ru:Runs, lRuns:List[Runs]):List[Runs] =
+  def filterRun(ru: Runs, lRuns: List[Runs]): List[Runs] =
     lRuns.filterNot(_.id == ru.id)
 }
 

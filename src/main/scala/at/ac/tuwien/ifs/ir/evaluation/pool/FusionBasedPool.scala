@@ -14,8 +14,6 @@ class FusionBasedPool(method: String, poolSize: Int, lRuns: List[Runs], gT: QRel
 
   override lazy val qRels: QRels = PoolConverter.repoolToFusionBased(method, poolSize, lRuns, gT)
 
-  //override def getPooledDocuments(topicId: Int): Set[Document] = FusionBasedPool.getPooledDocuments(method, estimatedNDs, lRuns, gT)(topicId)
-
   override def getNewInstance(lRuns: List[Runs]): Pool = FusionBasedPool(method, poolSize, lRuns, gT)
 
 }
@@ -47,7 +45,8 @@ object FusionBasedPool {
       new Runs(runs.id, List(new Run(run.id, normalize(run.runRecords))))
     })
 
-    def w(rr: RunRecord) = rr.score
+    def w(rr: RunRecord, sizeRun: Int): Float =
+      if(rr == null) 0f else rr.score
 
     def min(l: Seq[Float]): Float =
       l.min
@@ -59,21 +58,21 @@ object FusionBasedPool {
       l.sum
 
     def anz(l: Seq[Float]): Float =
-      sum(l) / l.size
+      sum(l) / l.count(_ > 0f)
 
     def mnz(l: Seq[Float]): Float =
-      sum(l) * l.size
+      sum(l) * l.count(_ > 0f)
 
     def med(l: Seq[Float]) = {
       val sl = l.sorted
       if (sl.size % 2 == 0) {
         val i = sl.size / 2
-        sl(i - 1) / 2 + sl(i) / 2
+        sl(i - 1) / 2f + sl(i) / 2f
       } else
         sl((sl.size - 1) / 2)
     }
 
-    NonAdaptiveBasedPool.getPooledDocumentsWithStat(w,
+    NonAdaptiveBasedPool.getPooledAlsoNullDocumentsWithStat(w,
       method match {
         case "combmin" => min
         case "combmax" => max

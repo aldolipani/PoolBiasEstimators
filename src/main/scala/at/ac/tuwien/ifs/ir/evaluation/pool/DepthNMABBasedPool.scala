@@ -10,13 +10,14 @@ import scala.util.Random
   * Multi-Armed Bandits Based Pool
   * Created by aldo on 23/05/17.
   */
-class DepthNMABBasedPool(m: String, depth:Int, c1: Double, c2: Double, sizePool: Int, lRuns: List[Runs], gT: QRels) extends FixedSizePool(sizePool, lRuns, gT) {
+class DepthNMABBasedPool(m: String, depth: Int, c1: Double, c2: Double, sizePool: Int, lRuns: List[Runs], gT: QRels, nDs: Map[Int, Int]) extends FixedSizePool(sizePool, lRuns, gT) {
 
-  override lazy val qRels: QRels = PoolConverter.repoolToDepthNMABBased(m, depth, c1, c2, sizePool, lRuns, gT)
+  override lazy val qRels: QRels = PoolConverter.repoolToDepthNMABBased(m, depth, c1, c2, sizePool, lRuns, gT, nDs)
 
-  override def getName:String = DepthNMABBasedPool.getName(m, depth, c1, c2, sizePool)
+  override def getName: String = DepthNMABBasedPool.getName(m, depth, c1, c2, sizePool)
 
-  override def getNewInstance(lRuns: List[Runs]): Pool = DepthNMABBasedPool(m, depth, c1, c2, sizePool, lRuns, gT)
+  override def getNewInstance(lRuns: List[Runs]): Pool = DepthNMABBasedPool(m, depth, c1, c2, sizePool, lRuns, gT,
+    FixedSizePool.findTopicSizes(nDs.values.sum, lRuns, qRels))
 
 }
 
@@ -24,11 +25,11 @@ object DepthNMABBasedPool {
 
   val rnd = new Random(1234)
 
-  def getName(m: String, depth:Int, c1: Double, c2: Double, sizePool: Int):String = "MABBased_" + m + ":" + depth + ":" + c1 + ":" + c2 + ":" + sizePool
+  def getName(m: String, depth: Int, c1: Double, c2: Double, sizePool: Int): String = "MABBased_" + m + ":" + depth + ":" + c1 + ":" + c2 + ":" + sizePool
 
-  def apply(m: String, depth:Int, c1: Double, c2: Double, pD: Int, lRuns: List[Runs], gT: QRels) = new DepthNMABBasedPool(m, depth, c1, c2, pD, lRuns, gT)
+  def apply(m: String, depth: Int, c1: Double, c2: Double, pD: Int, lRuns: List[Runs], gT: QRels, nDs: Map[Int, Int]) = new DepthNMABBasedPool(m, depth, c1, c2, pD, lRuns, gT, nDs)
 
-  def getPooledDocuments(m: String, depth:Int, c1: Double, c2: Double, nDs: Map[Int, Int], pRuns: List[Runs], qRels: QRels)(topicId: Int): Set[Document] = {
+  def getPooledDocuments(m: String, depth: Int, c1: Double, c2: Double, nDs: Map[Int, Int], pRuns: List[Runs], qRels: QRels)(topicId: Int): Set[Document] = {
 
     val oRs: Map[Int, List[Document]] = FixedSizePool.getSimplifiedLRuns(topicId, pRuns)
 
@@ -49,7 +50,7 @@ object DepthNMABBasedPool {
       }
 
       val docs = DepthNPool.getPooledDocuments(depth, pRuns, qRels)(topicId)
-      if(docs.size > nDs(topicId)){
+      if (docs.size > nDs(topicId)) {
         throw new InstantiationException("The selected poolSize (" + nDs.values.sum + ") is not sufficient for this pooling strategy")
       }
       val nORs = oRs.map(e => e._1 -> oRs(e._1).drop(depth)).filter(_._2.nonEmpty)
@@ -85,7 +86,7 @@ object DepthNMABBasedPool {
 
           getDocuments(
             FixedSizePool.updateSimplifiedLRuns(rs, nr),
-            if(cQRel.getRel(doc) < 0)
+            if (cQRel.getRel(doc) < 0)
               new QRel(cQRel.id, cQRel.qrelRecords :+ QRelRecord("Q0", doc, rel))
             else
               cQRel,
@@ -95,7 +96,7 @@ object DepthNMABBasedPool {
       }
 
       val docs = DepthNPool.getPooledDocuments(depth, pRuns, qRels)(topicId)
-      if(docs.size > nDs(topicId)){
+      if (docs.size > nDs(topicId)) {
         throw new InstantiationException("The selected poolSize (" + nDs.values.sum + ") is not sufficient for this pooling strategy")
       }
       val qRel = new QRel(topicId, docs.map(doc => QRelRecord("Q0", doc, qRels.getRel(topicId, doc))).toList)
@@ -134,7 +135,7 @@ object DepthNMABBasedPool {
 
           getDocuments(
             FixedSizePool.updateSimplifiedLRuns(rs, nr),
-            if(cQRel.getRel(doc) < 0)
+            if (cQRel.getRel(doc) < 0)
               new QRel(cQRel.id, cQRel.qrelRecords :+ QRelRecord("Q0", doc, rel))
             else
               cQRel,
@@ -144,7 +145,7 @@ object DepthNMABBasedPool {
       }
 
       val docs = DepthNPool.getPooledDocuments(depth, pRuns, qRels)(topicId)
-      if(docs.size > nDs(topicId)){
+      if (docs.size > nDs(topicId)) {
         throw new InstantiationException("The selected poolSize (" + nDs.values.sum + ") is not sufficient for this pooling strategy")
       }
       val qRel = new QRel(topicId, docs.map(doc => QRelRecord("Q0", doc, qRels.getRel(topicId, doc))).toList)
@@ -171,7 +172,7 @@ object DepthNMABBasedPool {
 
           getDocuments(
             FixedSizePool.updateSimplifiedLRuns(rs, nr),
-            if(cQRel.getRel(doc) < 0)
+            if (cQRel.getRel(doc) < 0)
               new QRel(cQRel.id, cQRel.qrelRecords :+ QRelRecord("Q0", doc, rel))
             else
               cQRel,
@@ -180,7 +181,7 @@ object DepthNMABBasedPool {
       }
 
       val docs = DepthNPool.getPooledDocuments(depth, pRuns, qRels)(topicId)
-      if(docs.size > nDs(topicId)){
+      if (docs.size > nDs(topicId)) {
         throw new InstantiationException("The selected poolSize (" + nDs.values.sum + ") is not sufficient for this pooling strategy")
       }
       val qRel = new QRel(topicId, docs.map(doc => QRelRecord("Q0", doc, qRels.getRel(topicId, doc))).toList)
@@ -195,11 +196,11 @@ object DepthNMABBasedPool {
           acc
         else {
           // select arm
-          val nr =
+          val nr = FixedSizePool.getNonDeterministicMaxObject(
             oRs.filter(r => rs.contains(r._1)).map(r => (r._1, {
               val ds = r._2.take(oRs(r._1).size - rs(r._1).size)
-              (1d + ds.count(d => cQRel.getRel(d) > 0)) / (2d + ds.count(d => cQRel.getRel(d) == 0)) + rnd.nextDouble() / (cQRel.size * oRs.size)
-            })).maxBy(_._2)._1
+              (1d + ds.count(d => cQRel.getRel(d) > 0)) / (2d + ds.size)
+            })).toList)
 
           // judge doc
           val doc = rs(nr).head
@@ -207,7 +208,7 @@ object DepthNMABBasedPool {
 
           getDocuments(
             FixedSizePool.updateSimplifiedLRuns(rs, nr),
-            if(cQRel.getRel(doc) < 0)
+            if (cQRel.getRel(doc) < 0)
               new QRel(cQRel.id, cQRel.qrelRecords :+ QRelRecord("Q0", doc, rel))
             else
               cQRel,
@@ -216,7 +217,7 @@ object DepthNMABBasedPool {
       }
 
       val docs = DepthNPool.getPooledDocuments(depth, pRuns, qRels)(topicId)
-      if(docs.size > nDs(topicId)){
+      if (docs.size > nDs(topicId)) {
         throw new InstantiationException("The selected poolSize (" + nDs.values.sum + ") is not sufficient for this pooling strategy")
       }
       val qRel = new QRel(topicId, docs.map(doc => QRelRecord("Q0", doc, qRels.getRel(topicId, doc))).toList)

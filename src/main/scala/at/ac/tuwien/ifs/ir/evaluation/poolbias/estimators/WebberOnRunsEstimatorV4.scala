@@ -59,7 +59,7 @@ class WebberOnRunsEstimatorV4(pool: Pool, metric: String, descs: Descs = null, l
         TRECEval().computeAntiMetric("P_" + d, nRun, nQRels)
 
       (δr*nQRels.sizeRel, krs)
-    }).filter(_._2 > 0).seq
+    }).seq
 
     kru * avg(as.map(e => e._1/e._2)) / pool.qRels.sizeRel
   }

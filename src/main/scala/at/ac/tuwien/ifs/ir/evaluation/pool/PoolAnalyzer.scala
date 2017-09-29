@@ -10,11 +10,6 @@ import scala.annotation.tailrec
 /**
   * Created by aldo on 10/10/14.
   */
-object PoolAnalyzerType extends Enumeration {
-  type PoolAnalyzerType = Value
-  val MODE, MAX_JUDGED, MIN_DEPTH = Value
-}
-
 class PoolAnalyzer(val pool: Pool, poolAnalyzerType: PoolAnalyzerType = PoolAnalyzerType.MODE) {
 
   lazy val d: Int = computePoolDepth
@@ -413,3 +408,4 @@ object PoolAnalyzer {
   }
 
 }
+

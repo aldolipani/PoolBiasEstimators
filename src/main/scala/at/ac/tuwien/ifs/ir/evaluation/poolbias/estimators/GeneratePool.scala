@@ -22,6 +22,7 @@ class GeneratePool extends Command{
       }
 
     val lRuns = getListRuns(trecRunsDir)
+
     val nLRuns =
       if(sizeRuns > 0){
         RunsTransformer.resizeRuns(sizeRuns, lRuns)
@@ -40,9 +41,9 @@ class GeneratePool extends Command{
         pool
       }
 
-    if(!interactivePool)
+    if(!interactivePool) {
       println(PoolConverter.to(toPool, nPool).qRels)
-    else {
+    } else {
       val pool = PoolConverter.to(toPool, nPool, restore)
       qRels.asInstanceOf[InteractiveQRels].nDs = pool.asInstanceOf[FixedSizePool].nDs
       pool.qRels
@@ -54,7 +55,6 @@ class GeneratePool extends Command{
     val qRels = QRels.fromLines("test", TXTFile.getLines(file))
     new InteractiveQRels(qRels.id, qRels.qRels, nDs, httpPort)
   }
-
 
 }
 

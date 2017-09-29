@@ -29,7 +29,11 @@ class TRECEval(tempDir: String = ".") {
   def round(num: Double): Double = Math.round(num * 10000).toDouble / 10000
 
   def recall(run: Run, qRel: QRel): Double =
-    num_ret_rel(run, qRel).toDouble / qRel.sizeRel
+    if (qRel.sizeRel == 0) {
+      0d
+    } else {
+      num_ret_rel(run, qRel).toDouble / qRel.sizeRel
+    }
 
   def rbpw_p(p: Float, rank: Int): Double = (1d - p) * Math.pow(p, rank - 1)
 
@@ -116,6 +120,29 @@ class TRECEval(tempDir: String = ".") {
   def computeMetricPerTopic(metric: String, runs: Runs, qRels: QRels): Map[Int, Double] =
     qRels.qRels.map(qRel => (qRel.id -> computeMetric(metric, runs, qRels.getTopicQRels(qRel.id)))).toMap
 
+  def computeRawMetricPerTopic(metric: String, runs: Runs, qRels: QRels): Map[Int, Double] =
+    qRels.qRels.map(qRel => (qRel.id -> computeRawMetric(metric, runs, qRels.getTopicQRels(qRel.id)))).toMap
+
+  def computeRawMetric(metric: String, runs: Runs, qRels: QRels): Double = {
+    if (metric.startsWith("P_")) {
+      val n = metric.split("_").last.toInt
+      p_n(n, runs, qRels)
+    } else if (metric.startsWith("recall_")) {
+      val n = metric.split("_").last.toInt
+      recall_n(n, runs, qRels)
+    } else if (metric.startsWith("RBP_")) {
+      val p = metric.split("_").last.toFloat
+      rbp_p(p, runs, qRels)
+    } else if (metric.startsWith("map")) {
+      map(runs, qRels)
+    } else if (metric.startsWith("ndcg")) {
+      ndcg(runs, qRels)
+    } else if (metric.startsWith("num_ret_rel")) {
+      num_ret_rel(runs, qRels)
+    } else
+      computeUnsupportedMetric(metric: String, runs: Runs, qRels: QRels)
+  }
+
   def computeMetric(metric: String, runs: Runs, qRels: QRels): Double = {
     if (metric.startsWith("P_")) {
       val n = metric.split("_").last.toInt
@@ -177,7 +204,11 @@ class TRECEval(tempDir: String = ".") {
 
   def computeAntiMetric(metric: String, runs: Runs, qRels: QRels) = computeMetric(metric, runs, qRels.inverse)
 
+  def computeRawAntiMetric(metric: String, runs: Runs, qRels: QRels) = computeRawMetric(metric, runs, qRels.inverse)
+
   def computeAntiMetricPerTopic(metric: String, runs: Runs, qRels: QRels) = computeMetricPerTopic(metric, runs, qRels.inverse)
+
+  def computeRawAntiMetricPerTopic(metric: String, runs: Runs, qRels: QRels) = computeRawMetricPerTopic(metric, runs, qRels.inverse)
 
   def computeMAP(runs: Runs, qRels: QRels) = computeMetric("map", runs, qRels)
 

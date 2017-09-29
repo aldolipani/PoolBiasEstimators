@@ -21,7 +21,7 @@ class WebberOnRunsEstimatorV3QB(pool: Pool, metric: String, descs: Descs = null,
     else
       "WebberOnRunsV3QBL1OO"
 
-  override def getNewInstance(pool: Pool) = new WebberOnRunsEstimatorV3QB(pool, metric, descs)
+  override def getNewInstance(pool: Pool) = new WebberOnRunsEstimatorV3QB(pool, metric, descs, l1xo)
 
   override def getScore(ru: Runs): Score = {
     if (metric.startsWith("recall_")) {
@@ -31,6 +31,7 @@ class WebberOnRunsEstimatorV3QB(pool: Pool, metric: String, descs: Descs = null,
     } else
       null
   }
+
 }
 
 object WebberOnRunsEstimatorV3QB {

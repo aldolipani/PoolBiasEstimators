@@ -13,8 +13,6 @@ class Pool(val lRuns: List[Runs], gT: QRels) {
 
   lazy val qRels:QRels = gT
 
-  //def getPooledDocuments(topicId: Int): Set[Document] = ???
-
   def getNewInstance(lRuns: List[Runs]): Pool = Pool(lRuns, gT)
 
 }

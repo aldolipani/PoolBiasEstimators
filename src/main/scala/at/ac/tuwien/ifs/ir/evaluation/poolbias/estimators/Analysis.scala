@@ -14,7 +14,7 @@ import at.ac.tuwien.ifs.ir.model.{Descs, DetailedScore, QRels, Runs}
  * Created by aldo on 10/10/14.
  */
 
-class Analysis(val metrics:List[String], val estimators:List[String]) extends Command{
+class Analysis(val measures:List[String], val estimators:List[String]) extends Command{
 
 
   def computeAll(trecRelFile: File, trecRunsDir: File, descRunsFile: File, l1xo: L1xo, top75Runs: Boolean, toPool:String, sizeRuns:Int, poolAnalyzerType:String) {
@@ -49,11 +49,11 @@ class Analysis(val metrics:List[String], val estimators:List[String]) extends Co
       printCrossPoolProperties(depthNPool, nPool)
     }
 
-    for (metric <- metrics){
+    for (measure <- measures){
       if(!top75Runs)
-        computeRuns(depthNPool, nPool, descs, metric, l1xo, PrintOut.all)
+        computeRuns(depthNPool, nPool, descs, measure, l1xo, PrintOut.all)
       else
-        compute75TopRuns(depthNPool, nPool, descs, metric, l1xo, PrintOut.all)
+        compute75TopRuns(depthNPool, nPool, descs, measure, l1xo, PrintOut.all)
     }
   }
 
@@ -143,7 +143,7 @@ class Analysis(val metrics:List[String], val estimators:List[String]) extends Co
       printCrossPoolProperties(depthNPool, nPool)
     }
 
-    for (metric <- metrics){
+    for (metric <- measures){
       computeEstimatesForRuns(nPool, runs, metric)
       computeEstimatesFor75TopRuns(nPool, runs, metric)
     }
@@ -167,7 +167,7 @@ class Analysis(val metrics:List[String], val estimators:List[String]) extends Co
     //*****
     System.setProperty("pool.depth", poolAnalyser.d + "")
     //*****
-    for (metric <- metrics) {
+    for (metric <- measures) {
       if (!top75Runs) computeRuns(depthNPool, pool, descs, metric, l1xo, PrintOut.onlyErrors)
       else compute75TopRuns(depthNPool, pool, descs, metric, l1xo, PrintOut.onlyErrors)
     }
@@ -193,7 +193,7 @@ class Analysis(val metrics:List[String], val estimators:List[String]) extends Co
     //*****
     System.setProperty("pool.depth", poolAnalyser.d + "")
     //*****
-    for (metric <- metrics) {
+    for (metric <- measures) {
       if (!top75Runs) computeRuns(depthNPool, pool, descs, metric, l1xo, PrintOut.onlyRuns)
       else compute75TopRuns(depthNPool, pool, descs, metric, l1xo, PrintOut.onlyRuns)
     }
@@ -233,27 +233,27 @@ class Analysis(val metrics:List[String], val estimators:List[String]) extends Co
     compute(nGPool, nPool, descs, metric, l1xo, printOut)
   }
 
-  private def computeEstimatesFor75TopRuns(pool:Pool, runs: Runs, metric: String) = {
-    val pooled75TopRuns = get75TopLRuns(pool, metric)
+  private def computeEstimatesFor75TopRuns(pool:Pool, runs: Runs, measure: String) = {
+    val pooled75TopRuns = get75TopLRuns(pool, measure)
     println("Only 75% Top Best Runs: " + pooled75TopRuns.size)
     val nPool = pool.getNewInstance(pooled75TopRuns)
-    computeEstimates(nPool, runs, metric)
+    computeEstimates(nPool, runs, measure)
   }
 
-  private def compute(gPool:DepthNPool, pool:Pool, descs: Descs, metric: String, l1xo:L1xo, printOut:PrintOut = PrintOut.all) = {
-    println("Metric\t" + metric)
-    val estimators = getEstimators(gPool, pool, descs, metric)
+  private def compute(gPool:DepthNPool, pool:Pool, descs: Descs, measure: String, l1xo:L1xo, printOut:PrintOut = PrintOut.all) = {
+    println("Measure\t" + measure)
+    val estimators = getEstimators(gPool, pool, descs, measure)
 
     if (isL1ro(l1xo))
-      computeL1ro(estimators, metric, printOut)
+      computeL1ro(estimators, measure, printOut)
 
     if (descs != null && isL1oo(l1xo))
-      computeL1oo(estimators, metric, printOut)
+      computeL1oo(estimators, measure, printOut)
   }
 
-  private def computeEstimates(pool:Pool, runs:Runs, metric: String) = {
-    println("Metric\t" + metric)
-    val estimators = getEstimators(pool.asInstanceOf[DepthNPool], pool, descs = null, metric)
+  private def computeEstimates(pool:Pool, runs:Runs, measure: String) = {
+    println("Measure\t" + measure)
+    val estimators = getEstimators(pool.asInstanceOf[DepthNPool], pool, descs = null, measure)
     estimators.map(_.printScore(runs))
     println("")
   }
@@ -305,33 +305,33 @@ class Analysis(val metrics:List[String], val estimators:List[String]) extends Co
     }*/
   }
 
-  private def getEstimators(oPool:DepthNPool, pool:Pool, descs: Descs, metric: String) =
-      List(TrueEstimator(oPool, metric, descs)) :::
+  private def getEstimators(oPool:DepthNPool, pool:Pool, descs: Descs, measure: String) =
+      List(TrueEstimator(oPool, measure, descs)) :::
         List(
-          TrueEstimatorQB(oPool, metric, descs),                              //TrueQB
-          PoolEstimator(pool, metric, descs),                                 //Pool
-          PoolEstimatorQB(pool, metric, descs),                               //PoolQB
-          WebberOnRunsEstimator(pool, metric, descs),                         //WebberOnRuns
-          WebberOnRunsEstimator(pool, metric, descs, L1xo.organization),      //WebberOnRunsL1OO
-          WebberOnRunsEstimatorQB(pool, metric, descs),                       //WebberOnRunsQB
-          WebberOnRunsEstimatorQB(pool, metric, descs, L1xo.organization),    //WebberOnRunsQBL1OO
-          WebberOnRunsEstimatorV2(pool, metric, descs),                       //WebberOnRunsV2 - CIKM
-          WebberOnRunsEstimatorV2(pool, metric, descs, L1xo.organization),    //WebberOnRunsV2L1OO - CIKM
-          WebberOnRunsEstimatorV2QB(pool, metric, descs),                     //WebberOnRunsV2QB
-          WebberOnRunsEstimatorV2QB(pool, metric, descs, L1xo.organization),  //WebberOnRunsV2QBL1OO
-          WebberOnRunsEstimatorV3(pool, metric, descs),                       //WebberOnRunsV3 - CIKM
-          WebberOnRunsEstimatorV3(pool, metric, descs, L1xo.organization),    //WebberOnRunsV3L1OO - CIKM
-          WebberOnRunsEstimatorV3QB(pool, metric, descs),                     //WebberOnRunsV3QB
-          WebberOnRunsEstimatorV3QB(pool, metric, descs, L1xo.organization),  //WebberOnRunsV3QBL1OO
-          WebberOnRunsEstimatorV4(pool, metric, descs),                       //WebberOnRunsV4
-          WebberOnRunsEstimatorV4(pool, metric, descs, L1xo.organization),    //WebberOnRunsV4L1OO
-          WebberOnRunsEstimatorV4QB(pool, metric, descs),                     //WebberOnRunsV4QB
-          WebberOnRunsEstimatorV4QB(pool, metric, descs, L1xo.organization),  //WebberOnRunsV4QBL1OO
-          LipaniEstimator(pool, metric, descs),                               //Lipani - SIGIR
-          LipaniEstimatorQB(pool, metric, descs),                             //LipaniQB
-          LipaniEstimatorV2(pool, metric, descs),                             //LipaniV2
-          LipaniEstimatorV2QB(pool, metric, descs)                            //LipaniV2QB
-        ).filter(e => e.isMetricSupported(metric) && estimators.contains(e.getName))
+          TrueEstimatorQB(oPool, measure, descs),                              //TrueQB
+          PoolEstimator(pool, measure, descs),                                 //Pool
+          PoolEstimatorQB(pool, measure, descs),                               //PoolQB
+          WebberOnRunsEstimator(pool, measure, descs),                         //WebberOnRuns
+          WebberOnRunsEstimator(pool, measure, descs, L1xo.organization),      //WebberOnRunsL1OO
+          WebberOnRunsEstimatorQB(pool, measure, descs),                       //WebberOnRunsQB
+          WebberOnRunsEstimatorQB(pool, measure, descs, L1xo.organization),    //WebberOnRunsQBL1OO
+          WebberOnRunsEstimatorV2(pool, measure, descs),                       //WebberOnRunsV2 - CIKM
+          WebberOnRunsEstimatorV2(pool, measure, descs, L1xo.organization),    //WebberOnRunsV2L1OO - CIKM
+          WebberOnRunsEstimatorV2QB(pool, measure, descs),                     //WebberOnRunsV2QB
+          WebberOnRunsEstimatorV2QB(pool, measure, descs, L1xo.organization),  //WebberOnRunsV2QBL1OO
+          WebberOnRunsEstimatorV3(pool, measure, descs),                       //WebberOnRunsV3 - CIKM
+          WebberOnRunsEstimatorV3(pool, measure, descs, L1xo.organization),    //WebberOnRunsV3L1OO - CIKM
+          WebberOnRunsEstimatorV3QB(pool, measure, descs),                     //WebberOnRunsV3QB
+          WebberOnRunsEstimatorV3QB(pool, measure, descs, L1xo.organization),  //WebberOnRunsV3QBL1OO
+          WebberOnRunsEstimatorV4(pool, measure, descs),                       //WebberOnRunsV4
+          WebberOnRunsEstimatorV4(pool, measure, descs, L1xo.organization),    //WebberOnRunsV4L1OO
+          WebberOnRunsEstimatorV4QB(pool, measure, descs),                     //WebberOnRunsV4QB
+          WebberOnRunsEstimatorV4QB(pool, measure, descs, L1xo.organization),  //WebberOnRunsV4QBL1OO
+          LipaniEstimator(pool, measure, descs),                               //Lipani - SIGIR
+          LipaniEstimatorQB(pool, measure, descs),                             //LipaniQB
+          LipaniEstimatorV2(pool, measure, descs),                             //LipaniV2
+          LipaniEstimatorV2QB(pool, measure, descs)                            //LipaniV2QB
+        ).filter(e => e.isMetricSupported(measure) && estimators.contains(e.getName))
 
 
   // Printing Methods
@@ -396,7 +396,7 @@ class Analysis(val metrics:List[String], val estimators:List[String]) extends Co
   private def printParameters(trecRelFile: File, trecRunsDir:File, descRunsFile:File, toPool:String,poolAnalyzerType:String): Unit ={
     def printParameter(name:String, value:String) = System.out.format("%-15s\t%s\n", name, value)
     println("List Parameters")
-    printParameter("metrics", metrics.mkString(","))
+    printParameter("metrics", measures.mkString(","))
     printParameter("estimators", estimators.mkString(","))
     printParameter("trec_rel_file", trecRelFile.getAbsolutePath)
     printParameter("trec_runs_dir", trecRunsDir.getAbsolutePath)

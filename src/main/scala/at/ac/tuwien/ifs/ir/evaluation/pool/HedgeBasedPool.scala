@@ -58,7 +58,8 @@ object HedgeBasedPool {
             0.5d * Math.pow(-1d, rel) * g(d, r._1)
           }).sum))
 
-        val nRLsNum = rLs.map(r => (r._1, { // normalize run losses
+        // normalize run losses
+        val nRLsNum = rLs.map(r => (r._1, {
           Math.pow(beta, r._2)
         }))
         val nRLsDen = nRLsNum.values.sum

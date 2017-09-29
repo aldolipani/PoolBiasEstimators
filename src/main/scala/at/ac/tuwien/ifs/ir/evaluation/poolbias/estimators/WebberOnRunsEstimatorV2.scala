@@ -6,14 +6,17 @@ import at.ac.tuwien.ifs.ir.evaluation.poolbias.estimators.bin.Main.L1xo
 import at.ac.tuwien.ifs.ir.evaluation.poolbias.estimators.bin.Main.L1xo.L1xo
 import at.ac.tuwien.ifs.ir.model.{Descs, QRels, Runs, Score}
 
-/**
-  * Created by aldo on 02/05/15.
-  */
-
 class WebberOnRunsEstimatorV2(pool: Pool, metric: String, descs: Descs = null, l1xo: L1xo = L1xo.run) extends ScoreEstimator(pool, metric, descs) {
 
-  def isMetricSupported(metric: String) =
-    metric.startsWith("P_")
+  def isMetricSupported(metric: String): Boolean =
+    metric.startsWith("P_") || metric.startsWith("recall_")
+
+  override def getScore(ru: Runs): Score = {
+    if (metric.startsWith("P"))
+      getScoreP(ru)
+    else
+      getScoreRecall(ru)
+  }
 
   def getScoreP(ru: Runs, pool: Pool = this.pool): Score = {
     def M(n: Int, ru: Runs, qRels: QRels = pool.qRels) =
@@ -25,15 +28,7 @@ class WebberOnRunsEstimatorV2(pool: Pool, metric: String, descs: Descs = null, l
     new Score(ru.id, sru + a, metric, pool.qRels)
   }
 
-  override def getScore(ru: Runs): Score = {
-    if (metric.startsWith("P"))
-      getScoreP(ru)
-    else
-      null
-  }
-
   def getAdjP(n: Int, ru: Runs, pool: Pool): Double = {
-
     lazy val olRuns = descs.getRunsPerOrganization(pool.lRuns)
 
     def M(ru: Runs, qRels: QRels = pool.qRels) =
@@ -41,18 +36,6 @@ class WebberOnRunsEstimatorV2(pool: Pool, metric: String, descs: Descs = null, l
 
     def AM(ru: Runs, qRels: QRels = pool.qRels) =
       TRECEval().computeAntiMetric("P_" + n, ru, qRels)
-
-    def avg(vs: Seq[Double]): Double =
-      if (vs.nonEmpty)
-        vs.sum / vs.size
-      else
-        0d
-
-    def logAvg(vs: Seq[Double]): Double =
-      if (vs.nonEmpty)
-        Math.log(avg(vs.map(e => Math.exp(e))))
-      else
-        0d
 
     val kru = 1d - M(ru) - AM(ru)
 
@@ -69,10 +52,75 @@ class WebberOnRunsEstimatorV2(pool: Pool, metric: String, descs: Descs = null, l
       (deltaP, krp)
     }).filter(e => e._1 > 0d).seq
 
-    kru * logAvg(as.map(e => e._1 / e._2))
+    kru * gavg(as.map(e => e._1 / e._2))
   }
 
-  override def getName =
+  def getScoreRecall(ru: Runs, pool: Pool = this.pool): Score = {
+    def M(n: Int, ru: Runs, qRels: QRels = pool.qRels) =
+      TRECEval().computeMetric("recall_" + n, ru, qRels)
+
+    val n = metric.split("_").last.toInt
+    val sru = M(n, ru, pool.qRels)
+    val a = getAdjRecall(n, ru, pool)
+    new Score(ru.id, sru + a, metric, pool.qRels)
+  }
+
+  def getAdjRecall(n: Int, ru: Runs, pool: Pool): Double = {
+    lazy val olRuns = descs.getRunsPerOrganization(pool.lRuns)
+
+    def M(ru: Runs, qRels: QRels = pool.qRels) =
+      TRECEval().recall_n(n, ru, qRels)
+
+    val qs = pool.qRels.qRels.map(qRel => {
+      val qRuns = pool.lRuns.map(run => run.getRunsTopic(qRel.id))
+
+      val as = qRuns.par.map(runs => {
+        val nRp =
+          if (l1xo == L1xo.organization)
+            filterOrganization(runs, qRuns, olRuns)
+          else
+            filterRun(runs, qRuns)
+
+        val oQRels = pool.getNewInstance(qRuns).qRels
+        val nQRels = pool.getNewInstance(nRp).qRels
+
+        //println(qRel.id + " " + qRuns.length)
+        M(runs, oQRels) - M(runs, nQRels)
+      }).seq
+
+      val ma = as.min
+      gavg(as.filter(a => a != ma).map(a => a - ma)) + ma
+      //avg(as)
+    })
+
+    avg(qs)
+  }
+
+  /*def getAdjRecall(n: Int, ru: Runs, pool: Pool): Double = {
+    lazy val olRuns = descs.getRunsPerOrganization(pool.lRuns)
+
+    def M(ru: Runs, qRels: QRels = pool.qRels) =
+      TRECEval().computeMetric("recall_" + n, ru, qRels)
+
+    def AM(ru: Runs, qRels: QRels = pool.qRels) =
+      TRECEval().computeAntiMetric("recall_" + n, ru, qRels)
+
+    val as = pool.lRuns.par.map(runs => {
+      val nRp =
+        if (l1xo == L1xo.organization)
+          filterOrganization(runs, pool.lRuns, olRuns)
+        else
+          filterRun(runs, pool.lRuns)
+
+      val nQRels = pool.getNewInstance(nRp).qRels
+      M(runs) - M(runs, nQRels)
+    }).seq
+
+    val ma = as.min
+    gavg(as.filter(a => a != ma).map(a => a - ma)) + ma
+  }*/
+
+  override def getName: String =
     if (l1xo == L1xo.organization)
       "WebberOnRunsV2L1OO"
     else
@@ -84,6 +132,7 @@ class WebberOnRunsEstimatorV2(pool: Pool, metric: String, descs: Descs = null, l
 
 object WebberOnRunsEstimatorV2 {
 
-  def apply(pool: Pool, metric: String, descs: Descs, l1xo: L1xo = L1xo.run) = new WebberOnRunsEstimatorV2(pool, metric, descs, l1xo)
+  def apply(pool: Pool, metric: String, descs: Descs, l1xo: L1xo = L1xo.run) =
+    new WebberOnRunsEstimatorV2(pool, metric, descs, l1xo)
 
 }
