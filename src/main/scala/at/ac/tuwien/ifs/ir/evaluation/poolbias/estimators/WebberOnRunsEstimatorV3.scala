@@ -59,8 +59,7 @@ class WebberOnRunsEstimatorV3(pool: Pool, measure: String, descs: Descs = null, 
       //val ma = as.min
       //val res = gavg(as.filter(a => a != ma).map(a => a - ma)) + ma
       //println(qRel.id + " " + res)
-      val res = avg(as)
-      res
+      avg(as)
     })
 
     avg(qs)

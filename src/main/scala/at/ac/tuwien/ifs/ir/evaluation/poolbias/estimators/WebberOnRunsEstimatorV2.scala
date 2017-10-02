@@ -5,6 +5,7 @@ import at.ac.tuwien.ifs.ir.evaluation.pool.{Pool, PoolAnalyzer}
 import at.ac.tuwien.ifs.ir.evaluation.poolbias.estimators.bin.Main.L1xo
 import at.ac.tuwien.ifs.ir.evaluation.poolbias.estimators.bin.Main.L1xo.L1xo
 import at.ac.tuwien.ifs.ir.model.{Descs, QRels, Runs, Score}
+import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics
 
 class WebberOnRunsEstimatorV2(pool: Pool, metric: String, descs: Descs = null, l1xo: L1xo = L1xo.run) extends ScoreEstimator(pool, metric, descs) {
 
@@ -65,7 +66,7 @@ class WebberOnRunsEstimatorV2(pool: Pool, metric: String, descs: Descs = null, l
     new Score(ru.id, sru + a, metric, pool.qRels)
   }
 
-  def getAdjRecall(n: Int, ru: Runs, pool: Pool): Double = {
+  /*def getAdjRecall(n: Int, ru: Runs, pool: Pool): Double = {
     lazy val olRuns = descs.getRunsPerOrganization(pool.lRuns)
 
     def M(ru: Runs, qRels: QRels = pool.qRels) =
@@ -94,6 +95,36 @@ class WebberOnRunsEstimatorV2(pool: Pool, metric: String, descs: Descs = null, l
     })
 
     avg(qs)
+  }*/
+
+  def med(xs:Seq[Double]):Double = {
+    import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics
+    val stats = new DescriptiveStatistics
+    xs.map(x => stats.addValue(x))
+    stats.getPercentile(50)
+  }
+
+  def getAdjRecall(n: Int, ru: Runs, pool: Pool): Double = {
+    lazy val olRuns = descs.getRunsPerOrganization(pool.lRuns)
+
+    def M(ru: Runs, qRels: QRels = pool.qRels) =
+      TRECEval().computeMetric("recall_" + n, ru, qRels)
+
+    def AM(ru: Runs, qRels: QRels = pool.qRels) =
+      TRECEval().computeAntiMetric("recall_" + n, ru, qRels)
+
+    val as = pool.lRuns.par.map(runs => {
+      val nRp =
+        if (l1xo == L1xo.organization)
+          filterOrganization(runs, pool.lRuns, olRuns)
+        else
+          filterRun(runs, pool.lRuns)
+
+      val nQRels = pool.getNewInstance(nRp).qRels
+      M(runs) - M(runs, nQRels)
+    }).seq
+
+    med(as)
   }
 
   /*def getAdjRecall(n: Int, ru: Runs, pool: Pool): Double = {

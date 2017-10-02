@@ -174,7 +174,7 @@ object MABBasedPool {
           val nr = FixedSizePool.getNonDeterministicMaxObject(
             oRs.filter(r => rs.contains(r._1)).map(r => (r._1, {
               val ds = r._2
-              (1d + ds.count(d => cQRel.getRel(d) > 0)) / (2d + ds.size)
+              (1d + ds.count(d => cQRel.getRel(d) > 0)) / (2d + ds.count(d => cQRel.getRel(d) >= 0))
             })).toList)
 
           // judge doc
