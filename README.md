@@ -1,7 +1,7 @@
 # PoolBiasEstimators
 With Pool bias in Information Retrieval (IR) is meant the bias of a test collection against new systems that appears as side-effect of the use of the pooling technique.
-In this repository we find the implementation of the pool bias estimators analyzed by Lipani et al. [1,2]. 
-The developed estimators are: the true estimator (TrueEstimator or TE), the estimator based on the pool (PoolEstimator or PE), the estimator based on runs developed by Webber and Park (WebberOnRunsEstimator or WORE) [3], and the estimator 
+In this repository we find the implementation of the pool bias estimators and pooling strategies analyzed by Lipani et al. [1,2,3]. 
+The developed estimators are: the true estimator (TrueEstimator or TE), the estimator based on the pool (PoolEstimator or PE), the estimator based on runs developed by Webber and Park (WebberOnRunsEstimator or WORE) [4], and the estimator 
 developed by Lipani et al. (LipaniEstimator or LE) [1,2].
 The TrueEstimator computes, when possible, the score of the selected run when pooled, useful to compare the true score with the estimated ones; the PoolEstimator computes the score of a run as it was not present during the construction of the pool, useful to measure the bias of the test collection and as baseline when comparing the performance of the other estimators. The details about the other estimators can be found in the respective referenced papers.
 
@@ -341,6 +341,6 @@ $ java -jar PoolBiasEstimators.jar --command generatePool \
 
 [2] Lipani, Aldo, Mihai Lupu, and Allan Hanbury. "The curious incidence of bias corrections in the pool." European Conference on Information Retrieval. Springer International Publishing, 2016. https://link.springer.com/chapter/10.1007/978-3-319-30671-1_20
 
-[3] Webber, William, and Laurence AF Park. "Score adjustment for correction of pooling bias." Proceedings of the 32nd international ACM SIGIR conference on Research and development in information retrieval. ACM, 2009. DOI=10.1145/1571941.1572018 http://doi.acm.org/10.1145/1571941.1572018
+[3] Lipani, Aldo, David E. Losada, Guido Zuccon, Mihai Lupu. "Fixed-Cost Pooling Strategies." IEEE Transactions on Knowledge and Data Engineering. IEEE, 2019.
 
-[4] TOIS Paper
+[4] Webber, William, and Laurence AF Park. "Score adjustment for correction of pooling bias." Proceedings of the 32nd international ACM SIGIR conference on Research and development in information retrieval. ACM, 2009. DOI=10.1145/1571941.1572018 http://doi.acm.org/10.1145/1571941.1572018
