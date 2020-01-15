@@ -16,13 +16,12 @@ import org.sameersingh.scalaplot.XYPlotStyle
 import scala.io.Source
 
 
-
 /**
  * Created by aldo on 15/02/15.
  */
-class ScoresError(trueScores:List[DetailedScore], trueScoresPerQueries: List[List[(Int, Score)]], metric: String = null) {
+class ScoresError(trueScores: List[DetailedScore], trueScoresPerQueries: List[List[(Int, Score)]], metric: String = null) {
 
-  val tTest:TTest = new TTest()
+  val tTest: TTest = new TTest()
 
   if (trueScores.size != trueScores.map(_.runId).toSet.size) println("Warning: found duplicate runId in trueScores")
 
@@ -50,6 +49,7 @@ class ScoresError(trueScores:List[DetailedScore], trueScoresPerQueries: List[Lis
       else
         findRank(scores.tail, r + 1)
     }
+
     findRank(scores.sortBy(-_.score), 1)
   }
 
@@ -61,7 +61,7 @@ class ScoresError(trueScores:List[DetailedScore], trueScoresPerQueries: List[Lis
     }).sum
   }
 
-  def relativeSystemRankError(testScores: List[Score], lRuns:List[Runs]): Int = {
+  def relativeSystemRankError(testScores: List[Score], lRuns: List[Runs]): Int = {
     testScores.map(s => {
       val newTrueScores = lRuns.map(runs => new Score(runs.id,
         TRECEval().computeMetric(s.metric, runs, s.qRels),
@@ -115,7 +115,7 @@ class ScoresError(trueScores:List[DetailedScore], trueScoresPerQueries: List[Lis
     }).sum
   }
 
-  def relativeSystemRankErrorStar(testScores: List[Score], lRuns:List[Runs]): Int = {
+  def relativeSystemRankErrorStar(testScores: List[Score], lRuns: List[Runs]): Int = {
     testScores.map(s => {
       val newTrueScores = lRuns.map(runs => new DetailedScore(runs.id,
         TRECEval().computeMetric(s.metric, runs, s.qRels),
@@ -147,34 +147,36 @@ class ScoresError(trueScores:List[DetailedScore], trueScoresPerQueries: List[Lis
   }
 
   def printReportErrors(scoreEstimator: ScoreEstimator, l1xo: L1xo = L1xo.run) {
-    def printReportError(metric:String, score:String) = System.out.format("\t%-6s\t%s\n", metric, score)
+    def printReportError(metric: String, score: String) = System.out.format("\t%-6s\t%s\n", metric, score)
 
     val scores = scoreEstimator.getAllScores(l1xo)
     println(scoreEstimator.getName + ":")
     val mae = this.meanAbsoluteError(scores)
-    printReportError("MAE", ("%1.4f" format round(mae._1)) + " " +  ("±%1.4f" format round(mae._2)))
+    printReportError("MAE", ("%1.4f" format TRECEval().round(mae._1)) + " " + ("±%1.4f" format TRECEval().round(mae._2)))
     printReportError("SRE", this.systemRankError(scores).toString)
     printReportError("SRE*", this.systemRankErrorStar(scores) + "\t(paired t-test p<0.05)")
     printReportError("RSRE", this.relativeSystemRankError(scores, scoreEstimator.pool.lRuns).toString)
     printReportError("RSRE*", this.relativeSystemRankErrorStar(scores, scoreEstimator.pool.lRuns) + "\t(paired t-test p<0.05)")
-    printReportError("KTauB", "%1.4f" format round(this.kendallsCorrelation(scores)))
+    printReportError("KTauB", "%1.4f" format TRECEval().round(this.kendallsCorrelation(scores)))
     println("")
   }
 
-  def transplose(l:List[(String, List[(Int, Double)])]):List[(Int, List[(String, Double)])] =
+  def transplose(l: List[(String, List[(Int, Double)])]): List[(Int, List[(String, Double)])] =
     l.head._2.map(tId =>
       (tId._1,
         l.flatMap(e => e._2.filter(_._1 == tId._1).map(a => (e._1, a._2)))))
 
   def printReportAnalysis(scoreEstimator: ScoreEstimator, l1xo: L1xo = L1xo.run) {
-    def printReportError(metric:String, score:String) = System.out.format("\t%-6s\t%s\n", metric, score)
+    def printReportError(metric: String, score: String) = System.out.format("\t%-6s\t%s\n", metric, score)
+
     def f(d: Double) = "%1.5f" format d
 
     val scores = scoreEstimator.getAllScoresPerQuery(l1xo)
     println(scoreEstimator.getName + ":")
 
     // Stats and Error Distribution
-    println("\tStats"); {
+    println("\tStats");
+    {
       val er = this.error(scores)
       val et = transplose(er).sortBy(_._1)
       val etm = et.map(e => (e._1, e._2.toMap)).toMap
@@ -202,26 +204,25 @@ class ScoresError(trueScores:List[DetailedScore], trueScoresPerQueries: List[Lis
       })
       val ys = a.tail.foldRight(a.head)((b, c) => b.zip(c).map(e => e._1 + e._2))
       println("\n\tError Distribution Plot")
-      output(PNG("plots/", "ed-"  + scoreEstimator.metric + "-" + scoreEstimator.getName), xyChart(xsp -> Y(ys, style = XYPlotStyle.LinesPoints)))
+      output(PNG("plots/", "ed-" + scoreEstimator.metric + "-" + scoreEstimator.getName), xyChart(xsp -> Y(ys, style = XYPlotStyle.LinesPoints)))
       println(output(ASCII, xyChart(xsp -> Y(ys, style = XYPlotStyle.LinesPoints))))
     }
-    println("\n\t Q-Q Plot"); {
+    println("\n\t Q-Q Plot");
+    {
       val et = scores.flatMap(r => r.map(t => (t._2.runId, t._1, t._2.score)))
       val ys = et.map(_._3)
       val xs = et.map(e => trueScoresPerQueryMap.get(e._1).get(e._2).score)
       output(PNG("plots/", "qq-" + scoreEstimator.metric + "-" + scoreEstimator.getName), xyChart(xs -> Y(ys, style = XYPlotStyle.Points)))
       println(output(ASCII, xyChart(xs -> Y(ys, style = XYPlotStyle.Points),
-        x = Axis(label="True", range = (0d, 1d)),
-        y = Axis(label="Predicted",range = (0d, 1d))
+        x = Axis(label = "True", range = (0d, 1d)),
+        y = Axis(label = "Predicted", range = (0d, 1d))
       )))
     }
   }
 
   private def avg(xs: Seq[Double]) = xs.sum / xs.size
 
-  private def avgCI(xs:Seq[Double]) = 1.96d * Math.sqrt((avg(xs.map(x => x*x)) - Math.pow(avg(xs),2)) / xs.size)
-
-  private def round(num: Double) = Math.round(num * 10000).toDouble / 10000
+  private def avgCI(xs: Seq[Double]) = 1.96d * Math.sqrt((avg(xs.map(x => x * x)) - Math.pow(avg(xs), 2)) / xs.size)
 
   private def withRank(scores: List[Score]): List[(Score, Int)] = {
     val ss = scores.sortBy(_.runId).reverse.sortBy(-_.score)

@@ -51,9 +51,13 @@ class WebberOnRunsEstimatorV3(pool: Pool, measure: String, descs: Descs = null, 
             filterRun(runs, qRuns)
 
         val oQRels = pool.getNewInstance(qRuns).qRels
-        val nQRels = pool.getNewInstance(nRp).qRels
-        val δr = M(runs, oQRels) - M(runs, nQRels)
-        δr * nQRels.sizeRel / oQRels.sizeRel
+        if (oQRels.sizeRel == 0)
+          0.0
+        else {
+          val nQRels = pool.getNewInstance(nRp).qRels
+          val δr = M(runs, oQRels) - M(runs, nQRels)
+          δr * nQRels.sizeRel / oQRels.sizeRel
+        }
       }).seq
 
       //val ma = as.min

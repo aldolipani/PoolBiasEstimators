@@ -25,3 +25,5 @@ out
 
 qRels.*
 runs.*
+
+deploy.sh

@@ -58,10 +58,10 @@ class WebberOnRunsEstimatorV4(pool: Pool, metric: String, descs: Descs = null, l
         TRECEval().computeMetric("P_" + d, nRun, nQRels) -
         TRECEval().computeAntiMetric("P_" + d, nRun, nQRels)
 
-      (δr*nQRels.sizeRel, krs)
+      (δr * nQRels.sizeRel, krs)
     }).seq
 
-    kru * avg(as.map(e => e._1/e._2)) / pool.qRels.sizeRel
+    kru * avg(as.map(e => if(e._2 == 0) 0.0 else e._1 / e._2)) / pool.qRels.sizeRel
   }
 
   override def getName =

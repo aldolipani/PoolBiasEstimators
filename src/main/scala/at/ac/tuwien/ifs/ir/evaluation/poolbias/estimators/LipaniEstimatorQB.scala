@@ -5,8 +5,8 @@ import at.ac.tuwien.ifs.ir.evaluation.pool.{Pool, PoolAnalyzer}
 import at.ac.tuwien.ifs.ir.model.{Descs, QRels, Runs, Score}
 
 /**
-  * Created by aldo on 15/07/16.
-  */
+ * Created by aldo on 15/07/16.
+ */
 
 class LipaniEstimatorQB(pool: Pool, metric: String, descs: Descs = null) extends LipaniEstimator(pool, metric, descs) {
 

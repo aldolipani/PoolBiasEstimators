@@ -7,9 +7,9 @@ import at.ac.tuwien.ifs.ir.evaluation.poolbias.estimators.bin.Main.L1xo._
 import at.ac.tuwien.ifs.ir.model.Score
 
 /**
-  * Created by aldo on 05/09/16.
-  */
-class BiasAnalyser(trueScoreEstimator: ScoreEstimator, l1xo: L1xo, pValuesDir: File = null, metric: String = null) {
+ * Created by aldo on 05/09/16.
+ */
+class BiasAnalyser(trueScoreEstimator: ScoreEstimator, l1xo: L1xo, pValuesDir: File = null, metric: String = null, rounding: Boolean = false) {
 
   lazy val trueScoresPerQuery: List[List[(Int, Score)]] =
     trueScoreEstimator.getAllScoresPerQuery()
@@ -40,7 +40,7 @@ class BiasAnalyser(trueScoreEstimator: ScoreEstimator, l1xo: L1xo, pValuesDir: F
 
   def avgCI(xs: Seq[Double]) = 1.96d * Math.sqrt((avg(xs.map(x => x * x)) - Math.pow(avg(xs), 2)) / xs.size)
 
-  def round(num: Double) = Math.round(num * 10000).toDouble / 10000
+  def round(num: Double) = if (rounding) Math.round(num * 10000).toDouble / 10000 else num
 
   private def withRank(scores: List[Score]): List[(Score, Int)] = {
     val ss = scores.sortBy(_.runId).reverse.sortBy(-_.score)

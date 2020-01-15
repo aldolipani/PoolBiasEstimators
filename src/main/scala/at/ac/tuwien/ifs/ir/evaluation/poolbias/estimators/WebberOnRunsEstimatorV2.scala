@@ -51,9 +51,14 @@ class WebberOnRunsEstimatorV2(pool: Pool, metric: String, descs: Descs = null, l
       val krp = 1d - M(runs, nQRels) - AM(runs, nQRels)
       val deltaP = M(runs) - M(runs, nQRels)
       (deltaP, krp)
-    }).filter(e => e._1 > 0d).seq
-
-    kru * gavg(as.map(e => e._1 / e._2))
+    }).seq
+    val as_f =  as.filter(e => e._1 != 0 && e._2 != 0).map(e => e._1/e._2)
+    if (as_f.isEmpty)
+      0.0
+    else {
+      val min_v = as_f.min
+      kru * (gavg(as.map(e => (if (e._2 == 0) 0d else e._1 / e._2) + min_v)) - min_v)
+    }
   }
 
   def getScoreRecall(ru: Runs, pool: Pool = this.pool): Score = {

@@ -7,8 +7,8 @@ import at.ac.tuwien.ifs.ir.evaluation.poolbias.estimators.bin.Main.L1xo.L1xo
 import at.ac.tuwien.ifs.ir.model._
 
 /**
-  * Created by aldo on 17/02/15.
-  */
+ * Created by aldo on 17/02/15.
+ */
 abstract class ScoreEstimator(val pool: Pool, val metric: String, descs: Descs = null) {
 
   def isMetricSupported(metric: String): Boolean
@@ -130,14 +130,14 @@ abstract class ScoreEstimator(val pool: Pool, val metric: String, descs: Descs =
 
   def MT(ru: Runs, qRels: QRels = pool.qRels) =
     TRECEval().computeRawMetricPerTopic(metric, ru, qRels).map(e =>
-      e._1 -> (if(ru.selectByTopicIdOrNil(e._1).runRecords.isEmpty) Double.NaN else e._2)).toMap
+      e._1 -> (if (ru.selectByTopicIdOrNil(e._1).runRecords.isEmpty) Double.NaN else e._2)).toMap
 
   def AMT(ru: Runs, qRels: QRels = pool.qRels) =
     TRECEval().computeRawAntiMetricPerTopic(metric, ru, qRels)
 
   def filterOrganization(ru: Runs, lRuns: List[Runs], olRuns: List[List[Runs]]): List[Runs] = {
     //println(ru.id, olRuns.flatten.map(_.id).mkString(", "))
-    val sRuns = olRuns.find(_.map(_.id).contains(ru.id.split("@").head)).get
+    val sRuns = olRuns.find(_.map(_.id).exists(_.contains(ru.id.split("@").head))).get
     ScoreEstimator.excludeRuns(sRuns, lRuns.map(e => new Runs(e.id.split("@").head, e.runs)))
   }
 

@@ -10,9 +10,9 @@ import scala.sys.process._
 import scala.util.Random
 
 /**
-  * Created by aldo on 10/19/14.
-  */
-class TRECEval(tempDir: String = ".") {
+ * Created by aldo on 10/19/14.
+ */
+class TRECEval(tempDir: String = ".", rounding: Boolean = true) {
 
   val temp: String = TRECEval.makeDir(tempDir)
   //TRECEval.clearFolder(temp)
@@ -26,7 +26,7 @@ class TRECEval(tempDir: String = ".") {
   def avg(vs: Seq[Double], den: Int): Double =
     vs.sum / den
 
-  def round(num: Double): Double = Math.round(num * 10000).toDouble / 10000
+  def round(num: Double): Double = if (rounding) Math.round(num * 10000).toDouble / 10000 else num
 
   def recall(run: Run, qRel: QRel): Double =
     if (qRel.sizeRel == 0) {
@@ -127,6 +127,9 @@ class TRECEval(tempDir: String = ".") {
     if (metric.startsWith("P_")) {
       val n = metric.split("_").last.toInt
       p_n(n, runs, qRels)
+    } else if (metric.startsWith("AP_")) {
+      val n = metric.split("_").last.toInt
+      p_n(n, runs, qRels.inverse)
     } else if (metric.startsWith("recall_")) {
       val n = metric.split("_").last.toInt
       recall_n(n, runs, qRels)
@@ -147,6 +150,9 @@ class TRECEval(tempDir: String = ".") {
     if (metric.startsWith("P_")) {
       val n = metric.split("_").last.toInt
       round(p_n(n, runs, qRels))
+    } else if (metric.startsWith("AP_")) {
+      val n = metric.split("_").last.toInt
+      round(p_n(n, runs, qRels.inverse))
     } else if (metric.startsWith("recall_")) {
       val n = metric.split("_").last.toInt
       round(recall_n(n, runs, qRels))
