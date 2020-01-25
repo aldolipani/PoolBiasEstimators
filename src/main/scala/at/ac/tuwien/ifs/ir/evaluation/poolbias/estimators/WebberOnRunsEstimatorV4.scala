@@ -33,36 +33,39 @@ class WebberOnRunsEstimatorV4(pool: Pool, metric: String, descs: Descs = null, l
     new Score(ru.id, sru + a, metric, pool.qRels)
   }
 
-  def getAdjRecall(n: Int, ru: Runs, pool: Pool): Double = {
-    def M(ru: Runs, qRels: QRels = pool.qRels) =
-      TRECEval().computeMetric("recall_" + n, ru, qRels)
+  def getAdjRecall(n: Int, ru: Runs, pool: Pool): Double =
+    if (pool.qRels.sizeRel == 0) {
+      0.0
+    } else {
+      def M(ru: Runs, qRels: QRels = pool.qRels) =
+        TRECEval().computeMetric("recall_" + n, ru, qRels)
 
-    lazy val olRuns = descs.getRunsPerOrganization(pool.lRuns)
+      lazy val olRuns = descs.getRunsPerOrganization(pool.lRuns)
 
-    val d = System.getProperty("pool.depth").toInt
+      val d = System.getProperty("pool.depth").toInt
 
-    val kru = 1d -
-      TRECEval().computeMetric("P_" + d, ru, pool.qRels) -
-      TRECEval().computeAntiMetric("P_" + d, ru, pool.qRels)
+      val kru = 1d -
+        TRECEval().computeMetric("P_" + d, ru, pool.qRels) -
+        TRECEval().computeAntiMetric("P_" + d, ru, pool.qRels)
 
-    val as = pool.lRuns.par.map(nRun => {
-      val nRp =
-        if (l1xo == L1xo.organization)
-          filterOrganization(nRun, pool.lRuns, olRuns)
-        else
-          filterRun(nRun, pool.lRuns)
-      val nQRels = pool.getNewInstance(nRp).qRels
-      val δr = M(nRun) - M(nRun, nQRels)
+      val as = pool.lRuns.par.map(nRun => {
+        val nRp =
+          if (l1xo == L1xo.organization)
+            filterOrganization(nRun, pool.lRuns, olRuns)
+          else
+            filterRun(nRun, pool.lRuns)
+        val nQRels = pool.getNewInstance(nRp).qRels
+        val δr = M(nRun) - M(nRun, nQRels)
 
-      val krs = 1d -
-        TRECEval().computeMetric("P_" + d, nRun, nQRels) -
-        TRECEval().computeAntiMetric("P_" + d, nRun, nQRels)
+        val krs = 1d -
+          TRECEval().computeMetric("P_" + d, nRun, nQRels) -
+          TRECEval().computeAntiMetric("P_" + d, nRun, nQRels)
 
-      (δr * nQRels.sizeRel, krs)
-    }).seq
+        (δr * nQRels.sizeRel, krs)
+      }).seq
 
-    kru * avg(as.map(e => if(e._2 == 0) 0.0 else e._1 / e._2)) / pool.qRels.sizeRel
-  }
+      kru * avg(as.map(e => if (e._2 == 0) 0.0 else e._1 / e._2)) / pool.qRels.sizeRel
+    }
 
   override def getName =
     if (l1xo == L1xo.organization)
